@@ -1,0 +1,51 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: comments
+    // Document ID: auto-generated
+    // Fields:
+    //   - text: string (required, 1-1000 chars)
+    //   - user: string (required, 1-100 chars)
+    //   - photo: string (optional, URL)
+    //   - uid: string (required, matches auth.uid)
+    //   - createdAt: timestamp (required, server-assigned)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidComment(data) {
+      return data.keys().hasAll(['text', 'user', 'uid', 'createdAt']) &&
+             data.keys().hasOnly(['text', 'user', 'photo', 'uid', 'createdAt']) &&
+             data.text is string && data.text.size() >= 1 && data.text.size() <= 1000 &&
+             data.user is string && data.user.size() >= 1 && data.user.size() <= 100 &&
+             (data.photo == null || (data.photo is string && data.photo.matches("^https?://.*"))) &&
+             data.uid == request.auth.uid &&
+             data.createdAt == request.time;
+    }
+
+    match /comments/{commentId} {
+      allow read: if true; // Publicly readable for portfolio display
+      allow create: if isAuthenticated() && isValidComment(request.resource.data);
+      allow update, delete: if false; // Comments are immutable for this demo
+    }
+    
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+  }
+}

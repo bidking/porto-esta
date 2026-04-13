@@ -1,0 +1,54 @@
+import Section from "./Section";
+import { motion } from "motion/react";
+
+const timeline = [
+  {
+    year: "2024 - Present",
+    role: "DevOps & System Administrator",
+    company: "Gamatechno",
+    description: "Orchestrating server infrastructure, managing Docker clusters, and optimizing Nginx configurations for high-traffic applications."
+  },
+  {
+    year: "2023",
+    role: "Data Management Intern",
+    company: "Telkom Witel Bogor",
+    description: "Assisted in enterprise data management and infrastructure monitoring for regional network operations."
+  },
+  {
+    year: "2020 - 2023",
+    role: "Software Engineering Student",
+    company: "SMKN 1 Cibinong",
+    description: "Foundation in software development, focusing on PHP, Java, and database architecture."
+  }
+];
+
+export default function CareerTimeline() {
+  return (
+    <Section id="career" className="max-w-4xl mx-auto">
+      <h2 className="text-4xl font-bold mb-16 tracking-tight text-center">Vertical Glass Terminal</h2>
+      
+      <div className="relative border-l border-white/10 ml-4 md:ml-0 md:left-1/2">
+        {timeline.map((item, i) => (
+          <motion.div
+            key={item.year}
+            initial={{ opacity: 0, x: i % 2 === 0 ? -50 : 50 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, delay: i * 0.2 }}
+            className={`relative mb-12 md:w-1/2 ${i % 2 === 0 ? "md:pr-12 md:text-right md:left-[-50%]" : "md:pl-12 md:left-[50%]"}`}
+          >
+            <div className={`absolute top-0 w-4 h-4 rounded-full bg-white border-4 border-black z-10 ${i % 2 === 0 ? "right-[-8px] md:right-[-8px]" : "left-[-8px] md:left-[-8px]"}`} />
+            
+            <div className="glass p-8 rounded-3xl interactive">
+              <span className="text-xs font-mono text-white/40 mb-2 block">{item.year}</span>
+              <h3 className="text-xl font-bold mb-1">{item.role}</h3>
+              <div className="text-blue-400 text-sm font-medium mb-4">{item.company}</div>
+              <p className="text-sm text-white/60 leading-relaxed">
+                {item.description}
+              </p>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </Section>
+  );
+}
