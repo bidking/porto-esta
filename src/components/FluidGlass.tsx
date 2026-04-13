@@ -46,7 +46,11 @@ export default function FluidGlass({ mode = 'lens', lensProps = {}, barProps = {
   } = rawOverrides;
 
   return (
-    <Canvas camera={{ position: [0, 0, 20], fov: 15 }} gl={{ alpha: true }} style={{ pointerEvents: 'none' }}>
+    <Canvas 
+      camera={{ position: [0, 0, 20], fov: 15 }} 
+      gl={{ alpha: true, antialias: true }} 
+      style={{ pointerEvents: 'none', position: 'fixed', inset: 0, zIndex: 50 }}
+    >
       <Suspense fallback={null}>
         <Wrapper modeProps={modeProps}>
           {children || <DefaultBackground />}
@@ -57,28 +61,24 @@ export default function FluidGlass({ mode = 'lens', lensProps = {}, barProps = {
   );
 }
 
-
 function DefaultBackground() {
   return (
     <>
-      <color attach="background" args={['#000000']} />
-      <ambientLight intensity={0.5} />
-      <pointLight position={[10, 10, 10]} />
-      <mesh position={[-2, 1, 0]}>
-        <sphereGeometry args={[1, 32, 32]} />
-        <meshStandardMaterial color="#3b82f6" roughness={0} metalness={0.5} />
+      <ambientLight intensity={1} />
+      <pointLight position={[10, 10, 10]} intensity={2} />
+      {/* Decorative elements that will be refracted by the lens */}
+      <mesh position={[-5, 2, -10]}>
+        <sphereGeometry args={[2, 32, 32]} />
+        <meshStandardMaterial color="#3b82f6" roughness={0.1} metalness={0.8} />
       </mesh>
-      <mesh position={[2, -1, 5]}>
-        <sphereGeometry args={[0.5, 32, 32]} />
-        <meshStandardMaterial color="#9333ea" roughness={0} metalness={0.5} />
-      </mesh>
-      <mesh position={[0, -2, 2]}>
-        <sphereGeometry args={[0.8, 32, 32]} />
-        <meshStandardMaterial color="#10b981" roughness={0} metalness={0.5} />
+      <mesh position={[5, -3, -10]}>
+        <sphereGeometry args={[1.5, 32, 32]} />
+        <meshStandardMaterial color="#9333ea" roughness={0.1} metalness={0.8} />
       </mesh>
     </>
   );
 }
+
 
 
 type MeshProps = ThreeElements['mesh'];
@@ -158,16 +158,13 @@ const ModeWrapper = memo(function ModeWrapper({
   return (
     <>
       {createPortal(children, scene)}
-      <mesh scale={[vp.width, vp.height, 1]}>
-        <planeGeometry />
-        <meshBasicMaterial map={buffer.texture} transparent />
-      </mesh>
       <mesh
         ref={ref}
         scale={scale ?? 0.15}
         rotation-x={Math.PI / 2}
         {...props}
       >
+
         {nodes[geometryKey] ? (
           <primitive object={nodes[geometryKey].geometry} attach="geometry" />
         ) : (
