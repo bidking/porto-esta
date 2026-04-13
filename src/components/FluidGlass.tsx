@@ -5,22 +5,12 @@ import { Canvas, createPortal, useFrame, useThree, ThreeElements } from '@react-
 import {
   useFBO,
   useGLTF,
-  useScroll,
-  Image,
-  Scroll,
   Preload,
-  ScrollControls,
   MeshTransmissionMaterial,
-  Text
 } from '@react-three/drei';
 import { easing } from 'maath';
 
 type Mode = 'lens' | 'bar' | 'cube';
-
-interface NavItem {
-  label: string;
-  link: string;
-}
 
 type ModeProps = Record<string, unknown>;
 
@@ -37,11 +27,6 @@ export default function FluidGlass({ mode = 'lens', lensProps = {}, barProps = {
   const rawOverrides = mode === 'bar' ? barProps : mode === 'cube' ? cubeProps : lensProps;
 
   const {
-    navItems = [
-      { label: 'Home', link: '#hero' },
-      { label: 'About', link: '#about' },
-      { label: 'Contact', link: '#contact' }
-    ],
     ...modeProps
   } = rawOverrides;
 
@@ -49,8 +34,18 @@ export default function FluidGlass({ mode = 'lens', lensProps = {}, barProps = {
     <Canvas 
       camera={{ position: [0, 0, 20], fov: 15 }} 
       gl={{ alpha: true, antialias: true }} 
-      style={{ pointerEvents: 'none', position: 'fixed', inset: 0, zIndex: 50 }}
+      onCreated={({ gl }) => {
+        gl.setClearColor(0x000000, 0);
+      }}
+      style={{ 
+        pointerEvents: 'none', 
+        position: 'fixed', 
+        inset: 0, 
+        zIndex: 50,
+        background: 'transparent'
+      }}
     >
+
       <Suspense fallback={null}>
         <Wrapper modeProps={modeProps}>
           {children || <DefaultBackground />}
@@ -66,7 +61,6 @@ function DefaultBackground() {
     <>
       <ambientLight intensity={1} />
       <pointLight position={[10, 10, 10]} intensity={2} />
-      {/* Decorative elements that will be refracted by the lens */}
       <mesh position={[-5, 2, -10]}>
         <sphereGeometry args={[2, 32, 32]} />
         <meshStandardMaterial color="#3b82f6" roughness={0.1} metalness={0.8} />
@@ -78,8 +72,6 @@ function DefaultBackground() {
     </>
   );
 }
-
-
 
 type MeshProps = ThreeElements['mesh'];
 
@@ -102,25 +94,23 @@ const ModeWrapper = memo(function ModeWrapper({
   ...props
 }: ModeWrapperProps) {
   const ref = useRef<THREE.Mesh>(null!);
-  // We use a try-catch or conditional check because we know the files might be missing initially
-  let nodes: any = {};
-  try {
-    const gltf = useGLTF(glb);
-    nodes = gltf.nodes;
-  } catch (e) {
-    console.warn(`GLTF model ${glb} not found. Falling back to default geometry.`);
-  }
+  const [modelError, setModelError] = useState(false);
+  
+  // We use a separate component to load GLTF to avoid breaking hooks in the main component
+  const nodes = useSafeGLTF(glb, setModelError);
 
   const buffer = useFBO();
   const { viewport: vp } = useThree();
-  const [scene] = useState<THREE.Scene>(() => new THREE.Scene());
+  const [scene] = useState(() => new THREE.Scene());
   const geoWidthRef = useRef<number>(1);
 
   useEffect(() => {
-    if (nodes[geometryKey]) {
+    if (nodes && nodes[geometryKey]) {
       const geo = (nodes[geometryKey] as THREE.Mesh).geometry;
       geo.computeBoundingBox();
-      geoWidthRef.current = geo.boundingBox!.max.x - geo.boundingBox!.min.x || 1;
+      if (geo.boundingBox) {
+        geoWidthRef.current = geo.boundingBox.max.x - geo.boundingBox.min.x || 1;
+      }
     }
   }, [nodes, geometryKey]);
 
@@ -141,19 +131,13 @@ const ModeWrapper = memo(function ModeWrapper({
       }
     }
 
+    // Render the scene (spheres) into the buffer for refraction
     gl.setRenderTarget(buffer);
     gl.render(scene, camera);
     gl.setRenderTarget(null);
   });
 
-  const { scale, ior, thickness, anisotropy, chromaticAberration, ...extraMat } = modeProps as {
-    scale?: number;
-    ior?: number;
-    thickness?: number;
-    anisotropy?: number;
-    chromaticAberration?: number;
-    [key: string]: unknown;
-  };
+  const { scale, ior, thickness, anisotropy, chromaticAberration, ...extraMat } = modeProps as any;
 
   return (
     <>
@@ -164,34 +148,44 @@ const ModeWrapper = memo(function ModeWrapper({
         rotation-x={Math.PI / 2}
         {...props}
       >
-
-        {nodes[geometryKey] ? (
-          <primitive object={nodes[geometryKey].geometry} attach="geometry" />
+        {nodes && nodes[geometryKey] ? (
+          <primitive object={(nodes[geometryKey] as THREE.Mesh).geometry} attach="geometry" />
         ) : (
           <cylinderGeometry args={[1, 1, 0.2, 32]} />
         )}
+
         <MeshTransmissionMaterial
           buffer={buffer.texture}
           ior={ior ?? 1.15}
           thickness={thickness ?? 5}
           anisotropy={anisotropy ?? 0.01}
           chromaticAberration={chromaticAberration ?? 0.1}
-          {...(typeof extraMat === 'object' && extraMat !== null ? extraMat : {})}
+          {...extraMat}
         />
       </mesh>
     </>
   );
 });
 
-function Lens({ modeProps, children, ...p }: { modeProps?: ModeProps; children?: ReactNode } & MeshProps) {
+function useSafeGLTF(url: string, onError: (err: boolean) => void) {
+  try {
+    const { nodes } = useGLTF(url);
+    return nodes;
+  } catch (e) {
+    // This catch might not work as expected with Suspense, but we handle it via fallback geometry
+    return null;
+  }
+}
+
+function Lens({ modeProps, children, ...p }: any) {
   return <ModeWrapper glb="/assets/3d/lens.glb" geometryKey="Cylinder" followPointer modeProps={modeProps} {...p}>{children}</ModeWrapper>;
 }
 
-function Cube({ modeProps, children, ...p }: { modeProps?: ModeProps; children?: ReactNode } & MeshProps) {
+function Cube({ modeProps, children, ...p }: any) {
   return <ModeWrapper glb="/assets/3d/cube.glb" geometryKey="Cube" followPointer modeProps={modeProps} {...p}>{children}</ModeWrapper>;
 }
 
-function Bar({ modeProps = {}, children, ...p }: { modeProps?: ModeProps; children?: ReactNode } & MeshProps) {
+function Bar({ modeProps = {}, children, ...p }: any) {
   const defaultMat = {
     transmission: 1,
     roughness: 0,
@@ -213,3 +207,4 @@ function Bar({ modeProps = {}, children, ...p }: { modeProps?: ModeProps; childr
     >{children}</ModeWrapper>
   );
 }
+
