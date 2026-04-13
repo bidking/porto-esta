@@ -1,6 +1,6 @@
 /* eslint-disable react/no-unknown-property */
 import * as THREE from 'three';
-import { useRef, useState, useEffect, memo, ReactNode } from 'react';
+import { useRef, useState, useEffect, memo, ReactNode, Suspense } from 'react';
 import { Canvas, createPortal, useFrame, useThree, ThreeElements } from '@react-three/fiber';
 import {
   useFBO,
@@ -47,13 +47,16 @@ export default function FluidGlass({ mode = 'lens', lensProps = {}, barProps = {
 
   return (
     <Canvas camera={{ position: [0, 0, 20], fov: 15 }} gl={{ alpha: true }} style={{ pointerEvents: 'none' }}>
-      <Wrapper modeProps={modeProps}>
-        {children || <DefaultBackground />}
-        <Preload />
-      </Wrapper>
+      <Suspense fallback={null}>
+        <Wrapper modeProps={modeProps}>
+          {children || <DefaultBackground />}
+          <Preload />
+        </Wrapper>
+      </Suspense>
     </Canvas>
   );
 }
+
 
 function DefaultBackground() {
   return (

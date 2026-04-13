@@ -1,6 +1,17 @@
 import { GoogleGenAI } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+let aiInstance: GoogleGenAI | null = null;
+
+function getAiInstance() {
+  if (!aiInstance) {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey || apiKey === "MY_GEMINI_API_KEY") {
+      throw new Error("Gemini API Key is not configured. Please add GEMINI_API_KEY to your Secrets in AI Studio.");
+    }
+    aiInstance = new GoogleGenAI({ apiKey });
+  }
+  return aiInstance;
+}
 
 export async function askGemini(prompt: string) {
   const systemInstruction = `
@@ -17,6 +28,7 @@ export async function askGemini(prompt: string) {
   `;
 
   try {
+    const ai = getAiInstance();
     const response = await ai.models.generateContent({
       model: "gemini-2.0-flash",
       contents: prompt,
@@ -27,6 +39,10 @@ export async function askGemini(prompt: string) {
     return response.text;
   } catch (error) {
     console.error("Gemini API Error:", error);
+    if (error instanceof Error && error.message.includes("API Key")) {
+      return "Maaf, API Key Gemini belum dikonfigurasi. Silakan tambahkan `GEMINI_API_KEY` di menu Secrets AI Studio.";
+    }
     return "I'm sorry, I'm having trouble connecting to my brain right now. Please try again later.";
   }
 }
+
