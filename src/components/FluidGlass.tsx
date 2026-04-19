@@ -1,75 +1,43 @@
+/* eslint-disable react/no-unknown-property */
 /**
- * FluidGlass — CSS-powered fluid glass cursor lens.
+ * FluidGlass — React Bits–style refractive glass cursor effect.
  *
- * Uses backdrop-filter + a layered highlight ring to simulate a refractive
- * glass lens that realistically distorts the underlying HTML page content.
+ * Architecture (follows React Bits pattern):
+ *  1. createPortal renders an ambient scene into a separate THREE.Scene
+ *  2. useFBO captures that scene to a render-texture each frame
+ *  3. The glass mesh (loaded from .glb) uses MeshTransmissionMaterial
+ *     with buffer={fbo.texture} to refract the captured scene
+ *  4. The Canvas is a fixed, pointer-events:none overlay so the lens
+ *     follows the cursor across the entire HTML portfolio page
  *
- * No WebGL / Three.js required — this approach works on all devices and
- * avoids the WebGL feedback-loop issue inherent in trying to capture page
- * pixels inside a transparent Canvas overlay.
- *
- * Usage:
- *   <FluidGlass mode="lens" lensProps={{ glassRadius: 120 }} />
+ * GLB models expected at /assets/3d/{lens,bar,cube}.glb
  */
 
+import * as THREE from 'three';
+import { useRef, useState, useEffect, memo, ReactNode } from 'react';
 import {
-  useRef,
-  useEffect,
-  useCallback,
-  useState,
-  memo,
-  CSSProperties,
-} from 'react';
+  Canvas,
+  createPortal,
+  useFrame,
+  useThree,
+  ThreeElements,
+} from '@react-three/fiber';
+import { useFBO, useGLTF, MeshTransmissionMaterial } from '@react-three/drei';
+import { easing } from 'maath';
 
-// ─── Public types ─────────────────────────────────────────────────────────────
+// ─── Public API types ─────────────────────────────────────────────────────────
 
 type Mode = 'lens' | 'bar' | 'cube';
-
-interface SharedGlassProps {
-  /** Backdrop blur in px. Default: 0 (pure refraction via scale trick) */
-  blur?: number;
-  /** Brightness multiplier. Default: 1.15 */
-  brightness?: number;
-  /** Saturation multiplier. Default: 1.4 */
-  saturate?: number;
-  /** Contrast multiplier. Default: 1.05 */
-  contrast?: number;
-  /** Extra CSS backdrop-filter tokens appended after the defaults */
-  extraFilter?: string;
-  /** IOR-like distortion: scales content inside lens. Default: 1.15 */
-  ior?: number;
-  /** Opacity of the highlight border (0–1). Default: 0.35 */
-  highlightOpacity?: number;
-  [key: string]: unknown;
-}
-
-interface LensSpecificProps extends SharedGlassProps {
-  /** Radius of the circular lens in px. Default: 110 */
-  glassRadius?: number;
-}
-
-interface BarSpecificProps extends SharedGlassProps {
-  /** Height of the bar in px. Default: 52 */
-  barHeight?: number;
-  /** Border radius of the bar in px. Default: 22 */
-  barBorderRadius?: number;
-}
-
-interface CubeSpecificProps extends SharedGlassProps {
-  /** Size (width & height) of the cube lens in px. Default: 160 */
-  cubeSize?: number;
-  /** Border radius of the cube in px. Default: 16 */
-  cubeBorderRadius?: number;
-}
+type ModeProps = Record<string, unknown>;
 
 interface FluidGlassProps {
   mode?: Mode;
-  lensProps?: LensSpecificProps;
-  barProps?: BarSpecificProps;
-  cubeProps?: CubeSpecificProps;
+  lensProps?: ModeProps;
+  barProps?: ModeProps;
+  cubeProps?: ModeProps;
 }
 
-// ─── Entry point ─────────────────────────────────────────────────────────────
+// ─── Entry point ──────────────────────────────────────────────────────────────
 
 export default function FluidGlass({
   mode = 'lens',
@@ -77,351 +45,270 @@ export default function FluidGlass({
   barProps = {},
   cubeProps = {},
 }: FluidGlassProps) {
-  const mouseCSS = useRef({ x: -9999, y: -9999 });
+  const Wrapper = mode === 'bar' ? Bar : mode === 'cube' ? Cube : Lens;
+  const modeProps = mode === 'bar' ? barProps : mode === 'cube' ? cubeProps : lensProps;
 
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    mouseCSS.current = { x: e.clientX, y: e.clientY };
-  }, []);
-
-  useEffect(() => {
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, [handleMouseMove]);
-
-  if (mode === 'bar') return <GlassBar mouseCSS={mouseCSS} {...barProps} />;
-  if (mode === 'cube') return <GlassCube mouseCSS={mouseCSS} {...cubeProps} />;
-  return <GlassLens mouseCSS={mouseCSS} {...lensProps} />;
-}
-
-// ─── Shared hook — rAF position update ────────────────────────────────────────
-
-function useFollowMouse(
-  divRef: React.RefObject<HTMLDivElement | null>,
-  mouseCSS: React.MutableRefObject<{ x: number; y: number }>,
-  offsetFn: (div: HTMLDivElement) => { left: string; top: string },
-) {
-  const rafRef = useRef<number>(0);
-
-  useEffect(() => {
-    const div = divRef.current;
-    if (!div) return;
-
-    const loop = () => {
-      const { left, top } = offsetFn(div);
-      div.style.left = left;
-      div.style.top = top;
-      rafRef.current = requestAnimationFrame(loop);
-    };
-    rafRef.current = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(rafRef.current);
-  }, [divRef, mouseCSS, offsetFn]);
-}
-
-// ─── Shared glass style builder ────────────────────────────────────────────────
-
-function buildFilter(p: SharedGlassProps): string {
-  const blur = p.blur ?? 0;
-  const brightness = p.brightness ?? 1.15;
-  const saturate = p.saturate ?? 1.4;
-  const contrast = p.contrast ?? 1.05;
-
-  const tokens = [
-    blur > 0 ? `blur(${blur}px)` : '',
-    `brightness(${brightness})`,
-    `saturate(${saturate})`,
-    `contrast(${contrast})`,
-    p.extraFilter ?? '',
-  ]
-    .filter(Boolean)
-    .join(' ');
-
-  return tokens;
-}
-
-function glassBoxShadow(highlightOpacity = 0.35): string {
-  const h = highlightOpacity;
-  return [
-    `inset 0 1.5px 2px rgba(255,255,255,${h * 1.6})`,
-    `inset 0 -1px 1.5px rgba(0,0,0,${h * 0.4})`,
-    `inset 1px 0 1.5px rgba(255,255,255,${h * 0.8})`,
-    `inset -1px 0 1.5px rgba(255,255,255,${h * 0.5})`,
-    `0 8px 32px rgba(0,0,0,0.22)`,
-    `0 2px 8px rgba(0,0,0,0.14)`,
-  ].join(', ');
-}
-
-const GLASS_BG =
-  'linear-gradient(135deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.07) 45%, rgba(255,255,255,0.18) 100%)';
-
-// ─── Lens (circle that follows cursor) ────────────────────────────────────────
-
-const GlassLens = memo(function GlassLens({
-  mouseCSS,
-  glassRadius = 110,
-  highlightOpacity = 0.35,
-  ior = 1.15,
-  ...rest
-}: LensSpecificProps & {
-  mouseCSS: React.MutableRefObject<{ x: number; y: number }>;
-}) {
-  const outerRef = useRef<HTMLDivElement>(null);
-  const innerRef = useRef<HTMLDivElement>(null);
-  const size = glassRadius * 2;
-
-  // Move the outer container so the lens is centred on cursor
-  useFollowMouse(
-    outerRef,
-    mouseCSS,
-    useCallback(
-      () => ({
-        left: `${mouseCSS.current.x - glassRadius}px`,
-        top: `${mouseCSS.current.y - glassRadius}px`,
-      }),
-      [mouseCSS, glassRadius],
-    ),
+  return (
+    // Fixed full-viewport overlay — pointer-events:none keeps page interactive
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 9999,
+        pointerEvents: 'none',
+      }}
+    >
+      <Canvas
+        camera={{ position: [0, 0, 20], fov: 15 }}
+        gl={{ alpha: true, antialias: true }}
+        onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
+      >
+        {/*
+         * The AmbientScene is what the glass actually refracts.
+         * It's portalled into a separate THREE.Scene captured by useFBO.
+         * Replace / extend this with any Three.js content you like.
+         */}
+        <Wrapper modeProps={modeProps}>
+          <AmbientScene />
+        </Wrapper>
+      </Canvas>
+    </div>
   );
+}
 
-  // The inner "content" div is scaled by ior to simulate refraction
-  const filter = buildFilter(rest);
+// ─── Ambient scene (content "inside" the glass) ───────────────────────────────
 
-  const containerStyle: CSSProperties = {
-    position: 'fixed',
-    zIndex: 9999,
-    pointerEvents: 'none',
-    width: size,
-    height: size,
-    borderRadius: '50%',
-    overflow: 'hidden',
-    /* glass surface visuals */
-    backdropFilter: filter,
-    WebkitBackdropFilter: filter,
-    background: GLASS_BG,
-    boxShadow: glassBoxShadow(highlightOpacity),
-    border: `1px solid rgba(255,255,255,${highlightOpacity})`,
-    // will-change for GPU compositing
-    willChange: 'transform, left, top',
-    left: '-9999px',
-    top: '-9999px',
+/**
+ * Renders an animated iridescent gradient plane into the offscreen FBO scene.
+ * This is the "world" the glass lens refracts.  Swap it for any R3F scene.
+ */
+function AmbientScene() {
+  const meshRef = useRef<THREE.Mesh>(null!);
+  const { viewport } = useThree();
+
+  // Animate the gradient over time
+  useFrame(({ clock }) => {
+    const mat = meshRef.current?.material as THREE.ShaderMaterial | undefined;
+    if (mat?.uniforms?.time) mat.uniforms.time.value = clock.elapsedTime;
+  });
+
+  const vertexShader = /* glsl */ `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `;
+
+  const fragmentShader = /* glsl */ `
+    uniform float time;
+    varying vec2 vUv;
+
+    vec3 palette(float t) {
+      // Purple → Blue → Teal iridescent palette
+      vec3 a = vec3(0.12, 0.08, 0.38);
+      vec3 b = vec3(0.32, 0.10, 0.48);
+      vec3 c = vec3(0.06, 0.28, 0.50);
+      vec3 d = vec3(0.18, 0.14, 0.42);
+      float s1 = sin(vUv.x * 6.28 + time * 0.35) * 0.5 + 0.5;
+      float s2 = sin(vUv.y * 6.28 + time * 0.22) * 0.5 + 0.5;
+      return mix(mix(a, b, s1), mix(c, d, s2), t);
+    }
+
+    void main() {
+      float t = sin(vUv.x * 3.14 + vUv.y * 2.0 + time * 0.3) * 0.5 + 0.5;
+      vec3 col = palette(t);
+      // Subtle radial vignette
+      float vign = 1.0 - length(vUv - 0.5) * 0.8;
+      gl_FragColor = vec4(col * vign, 1.0);
+    }
+  `;
+
+  return (
+    <mesh
+      ref={meshRef}
+      // Size: fill the view with slack for any camera/viewport combo
+      scale={[viewport.width * 3, viewport.height * 3, 1]}
+    >
+      <planeGeometry />
+      <shaderMaterial
+        uniforms={{ time: { value: 0 } }}
+        vertexShader={vertexShader}
+        fragmentShader={fragmentShader}
+      />
+    </mesh>
+  );
+}
+
+// ─── ModeWrapper — the React Bits core pattern ────────────────────────────────
+
+type MeshProps = ThreeElements['mesh'];
+
+interface ModeWrapperProps extends MeshProps {
+  children?: ReactNode;
+  glb: string;
+  geometryKey: string;
+  lockToBottom?: boolean;
+  followPointer?: boolean;
+  modeProps?: ModeProps;
+}
+
+const ModeWrapper = memo(function ModeWrapper({
+  children,
+  glb,
+  geometryKey,
+  lockToBottom = false,
+  followPointer = true,
+  modeProps = {},
+  ...props
+}: ModeWrapperProps) {
+  const meshRef = useRef<THREE.Mesh>(null!);
+  const { nodes } = useGLTF(glb);
+  const buffer = useFBO();
+  const { viewport: vp } = useThree();
+
+  // Separate scene that holds the ambient content
+  const [offscreenScene] = useState<THREE.Scene>(() => new THREE.Scene());
+
+  // Cache geometry width for auto-scale calculation
+  const geoWidthRef = useRef<number>(1);
+  useEffect(() => {
+    const geo = (nodes[geometryKey] as THREE.Mesh)?.geometry;
+    if (!geo) return;
+    geo.computeBoundingBox();
+    geoWidthRef.current =
+      (geo.boundingBox!.max.x - geo.boundingBox!.min.x) || 1;
+  }, [nodes, geometryKey]);
+
+  // Extract material props from modeProps
+  const {
+    scale,
+    ior,
+    thickness,
+    anisotropy,
+    chromaticAberration,
+    ...extraMat
+  } = modeProps as {
+    scale?: number;
+    ior?: number;
+    thickness?: number;
+    anisotropy?: number;
+    chromaticAberration?: number;
+    [key: string]: unknown;
   };
+
+  useFrame((state, delta) => {
+    const { gl, viewport, pointer, camera } = state;
+    const v = viewport.getCurrentViewport(camera, [0, 0, 15]);
+
+    // ── Follow pointer ──────────────────────────────────────────────────────
+    const destX = followPointer ? (pointer.x * v.width) / 2 : 0;
+    const destY = lockToBottom
+      ? -v.height / 2 + 0.2
+      : followPointer
+      ? (pointer.y * v.height) / 2
+      : 0;
+
+    easing.damp3(meshRef.current.position, [destX, destY, 15], 0.15, delta);
+
+    // ── Auto-scale if no explicit scale supplied ─────────────────────────────
+    if (scale == null) {
+      const maxWorld = v.width * 0.9;
+      const desired = maxWorld / geoWidthRef.current;
+      meshRef.current.scale.setScalar(Math.min(0.15, desired));
+    }
+
+    // ── Capture offscreen scene to FBO (React Bits pattern) ─────────────────
+    gl.setRenderTarget(buffer);
+    gl.render(offscreenScene, camera);
+    gl.setRenderTarget(null);
+  });
+
+  const geometry = (nodes[geometryKey] as THREE.Mesh)?.geometry;
+  if (!geometry) return null;
 
   return (
     <>
-      {/* Main glass disc */}
-      <div ref={outerRef} style={containerStyle}>
-        {/* IOR-like inner magnification layer */}
-        <div
-          ref={innerRef}
-          style={{
-            position: 'absolute',
-            inset: 0,
-            borderRadius: '50%',
-            transform: `scale(${ior})`,
-            backdropFilter: `brightness(${1 + (ior - 1) * 0.3})`,
-            WebkitBackdropFilter: `brightness(${1 + (ior - 1) * 0.3})`,
-          }}
-        />
-        {/* Top specular highlight arc */}
-        <div
-          style={{
-            position: 'absolute',
-            top: '8%',
-            left: '15%',
-            width: '70%',
-            height: '30%',
-            borderRadius: '50%',
-            background:
-              'radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.55) 0%, transparent 70%)',
-            pointerEvents: 'none',
-          }}
-        />
-        {/* Bottom caustic shimmer */}
-        <div
-          style={{
-            position: 'absolute',
-            bottom: '10%',
-            left: '20%',
-            width: '60%',
-            height: '20%',
-            borderRadius: '50%',
-            background:
-              'radial-gradient(ellipse at 50% 100%, rgba(255,255,255,0.22) 0%, transparent 70%)',
-            pointerEvents: 'none',
-          }}
-        />
-      </div>
+      {/* Portal: render ambient children into the offscreen scene */}
+      {createPortal(children, offscreenScene)}
 
-      {/* Outer glow ring */}
-      <GlowRing mouseCSS={mouseCSS} size={size} radius={glassRadius} />
+      {/*
+       * Glass mesh — uses MeshTransmissionMaterial with the FBO texture.
+       * The material refracts the captured offscreen scene through the GLB geometry.
+       */}
+      <mesh
+        ref={meshRef}
+        scale={scale ?? 0.15}
+        rotation-x={Math.PI / 2}
+        geometry={geometry}
+        {...props}
+      >
+        <MeshTransmissionMaterial
+          buffer={buffer.texture}
+          ior={ior ?? 1.15}
+          thickness={thickness ?? 5}
+          anisotropy={anisotropy ?? 0.01}
+          chromaticAberration={chromaticAberration ?? 0.1}
+          transmission={1}
+          roughness={0}
+          {...(extraMat ?? {})}
+        />
+      </mesh>
     </>
   );
 });
 
-// Separate glow ring so it can be positioned independently (sits outside overflow:hidden)
-function GlowRing({
-  mouseCSS,
-  size,
-  radius,
-}: {
-  mouseCSS: React.MutableRefObject<{ x: number; y: number }>;
-  size: number;
-  radius: number;
-}) {
-  const ringRef = useRef<HTMLDivElement>(null);
+// ─── Mode components ──────────────────────────────────────────────────────────
 
-  useFollowMouse(
-    ringRef,
-    mouseCSS,
-    useCallback(
-      () => ({
-        left: `${mouseCSS.current.x - radius - 3}px`,
-        top: `${mouseCSS.current.y - radius - 3}px`,
-      }),
-      [mouseCSS, radius],
-    ),
-  );
-
+function Lens({ modeProps, ...p }: { modeProps?: ModeProps } & MeshProps) {
   return (
-    <div
-      ref={ringRef}
-      style={{
-        position: 'fixed',
-        zIndex: 9998,
-        pointerEvents: 'none',
-        width: size + 6,
-        height: size + 6,
-        borderRadius: '50%',
-        border: '1px solid rgba(255,255,255,0.18)',
-        boxShadow: '0 0 18px rgba(255,255,255,0.12), 0 0 6px rgba(255,255,255,0.08)',
-        willChange: 'left, top',
-        left: '-9999px',
-        top: '-9999px',
-      }}
+    <ModeWrapper
+      glb="/assets/3d/lens.glb"
+      geometryKey="Cylinder"
+      followPointer
+      lockToBottom={false}
+      modeProps={modeProps}
+      {...p}
     />
   );
 }
 
-// ─── Cube (rounded-square that follows cursor) ────────────────────────────────
-
-const GlassCube = memo(function GlassCube({
-  mouseCSS,
-  cubeSize = 160,
-  cubeBorderRadius = 18,
-  highlightOpacity = 0.32,
-  ior = 1.12,
-  ...rest
-}: CubeSpecificProps & {
-  mouseCSS: React.MutableRefObject<{ x: number; y: number }>;
-}) {
-  const divRef = useRef<HTMLDivElement>(null);
-  const half = cubeSize / 2;
-  const filter = buildFilter(rest);
-
-  useFollowMouse(
-    divRef,
-    mouseCSS,
-    useCallback(
-      () => ({
-        left: `${mouseCSS.current.x - half}px`,
-        top: `${mouseCSS.current.y - half}px`,
-      }),
-      [mouseCSS, half],
-    ),
-  );
-
+function Cube({ modeProps, ...p }: { modeProps?: ModeProps } & MeshProps) {
   return (
-    <div
-      ref={divRef}
-      style={{
-        position: 'fixed',
-        zIndex: 9999,
-        pointerEvents: 'none',
-        width: cubeSize,
-        height: cubeSize,
-        borderRadius: cubeBorderRadius,
-        overflow: 'hidden',
-        backdropFilter: filter,
-        WebkitBackdropFilter: filter,
-        background: GLASS_BG,
-        boxShadow: glassBoxShadow(highlightOpacity),
-        border: `1px solid rgba(255,255,255,${highlightOpacity})`,
-        willChange: 'left, top',
-        left: '-9999px',
-        top: '-9999px',
-      }}
-    >
-      {/* IOR scale inner */}
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          transform: `scale(${ior})`,
-          backdropFilter: `brightness(${1 + (ior - 1) * 0.3})`,
-          WebkitBackdropFilter: `brightness(${1 + (ior - 1) * 0.3})`,
-        }}
-      />
-      {/* Top-left highlight */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '40%',
-          background:
-            'linear-gradient(180deg, rgba(255,255,255,0.35) 0%, transparent 100%)',
-          borderRadius: `${cubeBorderRadius}px ${cubeBorderRadius}px 50% 50%`,
-        }}
-      />
-    </div>
+    <ModeWrapper
+      glb="/assets/3d/cube.glb"
+      geometryKey="Cube"
+      followPointer
+      lockToBottom={false}
+      modeProps={modeProps}
+      {...p}
+    />
   );
-});
+}
 
-// ─── Bar (fixed bottom bar) ───────────────────────────────────────────────────
-
-const GlassBar = memo(function GlassBar({
-  mouseCSS: _mouseCSS,
-  barHeight = 52,
-  barBorderRadius = 22,
-  highlightOpacity = 0.3,
-  ...rest
-}: BarSpecificProps & {
-  mouseCSS: React.MutableRefObject<{ x: number; y: number }>;
-}) {
-  const filter = buildFilter(rest);
-
+function Bar({ modeProps = {}, ...p }: { modeProps?: ModeProps } & MeshProps) {
+  const defaultMat: ModeProps = {
+    transmission: 1,
+    roughness: 0,
+    thickness: 10,
+    ior: 1.15,
+    color: '#ffffff',
+    attenuationColor: '#ffffff',
+    attenuationDistance: 0.25,
+  };
   return (
-    <div
-      style={{
-        position: 'fixed',
-        zIndex: 9999,
-        pointerEvents: 'none',
-        left: '50%',
-        bottom: 12,
-        transform: 'translateX(-50%)',
-        width: 'min(480px, 90vw)',
-        height: barHeight,
-        borderRadius: barBorderRadius,
-        overflow: 'hidden',
-        backdropFilter: filter,
-        WebkitBackdropFilter: filter,
-        background: GLASS_BG,
-        boxShadow: glassBoxShadow(highlightOpacity),
-        border: `1px solid rgba(255,255,255,${highlightOpacity})`,
-      }}
-    >
-      {/* Horizontal top highlight stripe */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '45%',
-          background:
-            'linear-gradient(180deg, rgba(255,255,255,0.38) 0%, transparent 100%)',
-          borderRadius: `${barBorderRadius}px ${barBorderRadius}px 50% 50%`,
-        }}
-      />
-    </div>
+    <ModeWrapper
+      glb="/assets/3d/bar.glb"
+      geometryKey="Cube"
+      lockToBottom
+      followPointer={false}
+      modeProps={{ ...defaultMat, ...modeProps }}
+      {...p}
+    />
   );
-});
+}
+
+// Pre-load all models to avoid runtime stutter
+useGLTF.preload('/assets/3d/lens.glb');
+useGLTF.preload('/assets/3d/bar.glb');
+useGLTF.preload('/assets/3d/cube.glb');
