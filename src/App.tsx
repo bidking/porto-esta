@@ -18,20 +18,16 @@ import GeminiAssistant from "./components/GeminiAssistant";
 export default function App() {
   return (
     <main className="relative min-h-screen bg-black selection:bg-white/20">
-      <div className="fixed inset-0 z-50 pointer-events-none">
-        <FluidGlass 
-          mode="lens"
-          lensProps={{
-            scale: 0.2,
-            ior: 1.15,
-            thickness: 2,
-            transmission: 1,
-            roughness: 0,
-            chromaticAberration: 0.05,
-            anisotropy: 0.01
-          }}
-        />
-      </div>
+      <FluidGlass 
+        mode="lens"
+        lensProps={{
+          scale: 0.2,
+          ior: 1.15,
+          thickness: 5,
+          chromaticAberration: 0.1,
+          anisotropy: 0.01  
+        }}
+      />
       
       <Navbar />
       <GeminiAssistant />
