@@ -106,9 +106,13 @@ export default function LiquidEther({
 
       init(container: HTMLElement) {
         this.container = container;
-        this.pixelRatio = Math.min(window.devicePixelRatio || 1, 1.5);
+        this.pixelRatio = Math.min(window.devicePixelRatio || 1, 1.2);
         this.resize();
-        this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        this.renderer = new THREE.WebGLRenderer({ 
+          antialias: true, 
+          alpha: true,
+          powerPreference: "high-performance" 
+        });
         this.renderer.autoClear = false;
         this.renderer.setClearColor(new THREE.Color(0x000000), 0);
         this.renderer.setPixelRatio(this.pixelRatio);
@@ -116,8 +120,9 @@ export default function LiquidEther({
         this.renderer.domElement.style.width = '100%';
         this.renderer.domElement.style.height = '100%';
         this.renderer.domElement.style.display = 'block';
-        this.clock = new THREE.Clock();
-        this.clock.start();
+        
+        // Fix deprecation: Usage of performance.now() instead of THREE.Clock
+        this.time = performance.now() / 1000;
       }
       resize() {
         if (!this.container) return;
@@ -128,10 +133,9 @@ export default function LiquidEther({
         if (this.renderer) this.renderer.setSize(this.width, this.height, false);
       }
       update() {
-        if (this.clock) {
-          this.delta = this.clock.getDelta();
-          this.time += this.delta;
-        }
+        const now = performance.now() / 1000;
+        this.delta = now - this.time;
+        this.time = now;
       }
     }
     const Common = new CommonClass();

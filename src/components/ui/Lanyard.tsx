@@ -6,22 +6,16 @@ import { BallCollider, CuboidCollider, Physics, RigidBody, useRopeJoint, useSphe
 import { MeshLineGeometry, MeshLineMaterial } from 'meshline';
 import * as THREE from 'three';
 
-// Remote asset fallbacks (Guarantees the app works immediately)
+// Asset configuration
 const REMOTE_CARD = 'https://raw.githubusercontent.com/DavidHDev/react-bits/master/src/assets/lanyard/card.glb';
 const REMOTE_LANYARD = 'https://raw.githubusercontent.com/DavidHDev/react-bits/master/src/assets/lanyard/lanyard.png';
 
-/**
- * TO USE YOUR OWN ASSETS:
- * 1. Upload your 'card.glb' and 'lanyard.png' to the /public/assets/ folder.
- * 2. Change the variables below to:
- *    const cardGLB = '/assets/card.glb';
- *    const lanyard = '/assets/lanyard.png';
- */
-const cardGLB = REMOTE_CARD;
+// Fallback logic: Try to use local files if defined, else use remote
+const cardGLB = REMOTE_CARD; 
 const lanyard = REMOTE_LANYARD;
 
 import './Lanyard.css';
-import { Suspense } from 'react';
+import { Suspense, useMemo } from 'react';
 
 extend({ MeshLineGeometry, MeshLineMaterial });
 
@@ -32,53 +26,69 @@ export default function Lanyard({ position = [0, 0, 30], gravity = [0, -40, 0], 
   transparent?: boolean;
 }) {
   const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
+  const [isVisible, setIsVisible] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsVisible(entry.isIntersecting),
+      { threshold: 0.05 }
+    );
+    
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      observer.disconnect();
+    };
   }, []);
 
+  // Use local assets as requested by user
+  const cardGLBPath = '/assets/card.glb';
+  const lanyardPath = '/assets/lanyard.png';
+
   return (
-    <div className="lanyard-wrapper">
+    <div ref={containerRef} className="lanyard-wrapper">
       <Suspense fallback={<div className="w-full h-full bg-white/5 animate-pulse rounded-2xl" />}>
-        <Canvas
-          camera={{ position: position as any, fov: fov }}
-          dpr={[1, 1.5]}
-          gl={{ 
-            alpha: transparent,
-            antialias: !isMobile,
-            powerPreference: "high-performance"
-          }}
-          onCreated={({ gl }) => gl.setClearColor(new THREE.Color(0x000000), transparent ? 0 : 1)}
-        >
-          <ambientLight intensity={Math.PI * 0.5} />
-          <Physics gravity={gravity as any} timeStep={1 / 30}>
-            <Band isMobile={isMobile} />
-          </Physics>
-          <Environment blur={1}>
-            <Lightformer
-              intensity={2}
-              color="white"
-              position={[0, -1, 5]}
-              rotation={[0, 0, Math.PI / 3]}
-              scale={[100, 0.1, 1]}
-            />
-            <Lightformer
-              intensity={5}
-              color="white"
-              position={[-10, 0, 14]}
-              rotation={[0, Math.PI / 2, Math.PI / 3]}
-              scale={[100, 10, 1]}
-            />
-          </Environment>
-        </Canvas>
+        {isVisible && (
+          <Canvas
+            camera={{ position: position as any, fov: fov }}
+            dpr={[1, 1.2]}
+            gl={{ 
+              alpha: transparent,
+              antialias: !isMobile,
+              powerPreference: "high-performance",
+              preserveDrawingBuffer: false
+            }}
+            onCreated={({ gl }) => {
+              gl.setClearColor(new THREE.Color(0x000000), transparent ? 0 : 1);
+              gl.domElement.addEventListener('webglcontextlost', (e) => {
+                e.preventDefault();
+                console.warn("Lanyard: Context Lost. Reloading scene...");
+              }, false);
+            }}
+          >
+            <ambientLight intensity={Math.PI * 0.5} />
+            <Physics gravity={gravity as any} timeStep={1 / 30}>
+              <Band isMobile={isMobile} cardGLB={cardGLBPath} lanyardImg={lanyardPath} />
+            </Physics>
+            <Environment blur={1}>
+              <Lightformer intensity={2} color="white" position={[0, -1, 5]} rotation={[0, 0, Math.PI / 3]} scale={[100, 0.1, 1]} />
+              <Lightformer intensity={5} color="white" position={[-10, 0, 14]} rotation={[0, Math.PI / 2, Math.PI / 3]} scale={[100, 10, 1]} />
+            </Environment>
+          </Canvas>
+        )}
       </Suspense>
     </div>
   );
 }
 
-function Band({ maxSpeed = 30, minSpeed = 0, isMobile = false }) {
+function Band({ maxSpeed = 30, minSpeed = 0, isMobile = false, cardGLB, lanyardImg }: any) {
   const band = useRef<any>(null),
     fixed = useRef<any>(null),
     j1 = useRef<any>(null),
@@ -91,9 +101,8 @@ function Band({ maxSpeed = 30, minSpeed = 0, isMobile = false }) {
     dir = new THREE.Vector3();
   const segmentProps: any = { type: 'dynamic', canSleep: true, colliders: false, angularDamping: 4, linearDamping: 4 };
   
-  // These will throw if files are not valid GLB/PNG
   const { nodes, materials } = useGLTF(cardGLB) as any;
-  const texture = useTexture(lanyard);
+  const texture = useTexture(lanyardImg) as THREE.Texture;
   
   const [curve] = useState(
     () =>
@@ -101,6 +110,30 @@ function Band({ maxSpeed = 30, minSpeed = 0, isMobile = false }) {
   );
   const [dragged, drag] = useState<any>(false);
   const [hovered, hover] = useState(false);
+
+  // CardContent logic to handle different GLB structures
+  const CardContent = useMemo(() => {
+    if (nodes.card && nodes.clip && nodes.clamp) {
+      return (
+        <>
+          <mesh geometry={nodes.card.geometry}>
+            <meshPhysicalMaterial
+              map={materials.base.map}
+              map-anisotropy={16}
+              clearcoat={isMobile ? 0 : 1}
+              clearcoatRoughness={0.15}
+              roughness={0.9}
+              metalness={0.8}
+            />
+          </mesh>
+          <mesh geometry={nodes.clip.geometry} material={materials.metal} material-roughness={0.3} />
+          <mesh geometry={nodes.clamp.geometry} material={materials.metal} />
+        </>
+      );
+    }
+    // Fallback if useGLTF returns something else
+    return <primitive object={nodes.scene || nodes.root || Object.values(nodes)[0]} />;
+  }, [nodes, materials, isMobile]);
 
   useRopeJoint(fixed, j1, [[0, 0, 0], [0, 0, 0], 1]);
   useRopeJoint(j1, j2, [[0, 0, 0], [0, 0, 0], 1]);
@@ -174,18 +207,7 @@ function Band({ maxSpeed = 30, minSpeed = 0, isMobile = false }) {
               drag(new THREE.Vector3().copy(e.point).sub(vec.copy(card.current.translation())))
             )}
           >
-            <mesh geometry={nodes.card.geometry}>
-              <meshPhysicalMaterial
-                map={materials.base.map}
-                map-anisotropy={16}
-                clearcoat={isMobile ? 0 : 1}
-                clearcoatRoughness={0.15}
-                roughness={0.9}
-                metalness={0.8}
-              />
-            </mesh>
-            <mesh geometry={nodes.clip.geometry} material={materials.metal} material-roughness={0.3} />
-            <mesh geometry={nodes.clamp.geometry} material={materials.metal} />
+            {CardContent}
           </group>
         </RigidBody>
       </group>
