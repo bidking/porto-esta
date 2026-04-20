@@ -10,9 +10,9 @@ export default function About() {
           initial={{ opacity: 0, x: -30 }}
           whileInView={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8 }}
-          className="h-[500px]"
+          className="h-[650px] w-full"
         >
-          <Lanyard position={[0, 0, 20]} gravity={[0, -40, 0]} />
+          <Lanyard position={[0, 0, 15]} gravity={[0, -40, 0]} />
         </motion.div>
 
         <motion.div
