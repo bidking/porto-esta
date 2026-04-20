@@ -6,20 +6,19 @@ import { BallCollider, CuboidCollider, Physics, RigidBody, useRopeJoint, useSphe
 import { MeshLineGeometry, MeshLineMaterial } from 'meshline';
 import * as THREE from 'three';
 
-// Import local assets (User should upload their files to src/assets/)
-// If the local files don't exist yet, we use the remote CDN fallbacks
-// @ts-ignore
-import localCardGLB from '../../assets/card.glb?url';
-// @ts-ignore
-import localLanyardPng from '../../assets/lanyard.png?url';
-
+// Remote asset fallbacks (Guarantees the app works immediately)
 const REMOTE_CARD = 'https://raw.githubusercontent.com/DavidHDev/react-bits/master/src/assets/lanyard/card.glb';
 const REMOTE_LANYARD = 'https://raw.githubusercontent.com/DavidHDev/react-bits/master/src/assets/lanyard/lanyard.png';
 
-// Use local files if they are not just the dummy path produced by Vite for missing assets
-// (Note: In some environments, localCardGLB might still be a string even if file is missing)
-const cardGLB = localCardGLB || REMOTE_CARD;
-const lanyard = localLanyardPng || REMOTE_LANYARD;
+/**
+ * TO USE YOUR OWN ASSETS:
+ * 1. Upload your 'card.glb' and 'lanyard.png' to the /public/assets/ folder.
+ * 2. Change the variables below to:
+ *    const cardGLB = '/assets/card.glb';
+ *    const lanyard = '/assets/lanyard.png';
+ */
+const cardGLB = REMOTE_CARD;
+const lanyard = REMOTE_LANYARD;
 
 import './Lanyard.css';
 import { Suspense } from 'react';
