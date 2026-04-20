@@ -135,12 +135,12 @@ function Band({ maxSpeed = 30, minSpeed = 0, isMobile = false, cardGLB, lanyardI
     return <primitive object={nodes.scene || nodes.root || Object.values(nodes)[0]} />;
   }, [nodes, materials, isMobile]);
 
-  useRopeJoint(fixed, j1, [[0, 0, 0], [0, 0, 0], 1]);
-  useRopeJoint(j1, j2, [[0, 0, 0], [0, 0, 0], 1]);
-  useRopeJoint(j2, j3, [[0, 0, 0], [0, 0, 0], 1]);
+  useRopeJoint(fixed, j1, [[0, 0, 0], [0, 0, 0], 1.2]);
+  useRopeJoint(j1, j2, [[0, 0, 0], [0, 0, 0], 1.2]);
+  useRopeJoint(j2, j3, [[0, 0, 0], [0, 0, 0], 1.2]);
   useSphericalJoint(j3, card, [
     [0, 0, 0],
-    [0, 1.5, 0]
+    [0, 1.7, 0]
   ]);
 
   useEffect(() => {

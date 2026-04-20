@@ -2,7 +2,7 @@
   position: relative;
   z-index: 0;
   width: 100%;
-  height: 500px;
+  height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -12,6 +12,6 @@
 
 @media (max-width: 768px) {
   .lanyard-wrapper {
-    height: 400px;
+    height: 100%;
   }
 }
