@@ -12,9 +12,9 @@ export default function Hero() {
           cursorSize={100}
           isViscous={true}
           viscous={30}
-          iterationsViscous={32}
-          iterationsPoisson={32}
-          resolution={0.5}
+          iterationsViscous={16}
+          iterationsPoisson={16}
+          resolution={0.4}
           isBounce={false}
           autoDemo={true}
           autoSpeed={0.5}

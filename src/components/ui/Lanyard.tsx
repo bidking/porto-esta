@@ -41,18 +41,22 @@ export default function Lanyard({ position = [0, 0, 30], gravity = [0, -40, 0], 
 
   return (
     <div className="lanyard-wrapper">
-      <Suspense fallback={null}>
+      <Suspense fallback={<div className="w-full h-full bg-white/5 animate-pulse rounded-2xl" />}>
         <Canvas
           camera={{ position: position as any, fov: fov }}
-          dpr={[1, isMobile ? 1.5 : 2]}
-          gl={{ alpha: transparent }}
+          dpr={[1, 1.5]}
+          gl={{ 
+            alpha: transparent,
+            antialias: !isMobile,
+            powerPreference: "high-performance"
+          }}
           onCreated={({ gl }) => gl.setClearColor(new THREE.Color(0x000000), transparent ? 0 : 1)}
         >
-          <ambientLight intensity={Math.PI} />
-          <Physics gravity={gravity as any} timeStep={isMobile ? 1 / 30 : 1 / 60}>
+          <ambientLight intensity={Math.PI * 0.5} />
+          <Physics gravity={gravity as any} timeStep={1 / 30}>
             <Band isMobile={isMobile} />
           </Physics>
-          <Environment blur={0.75}>
+          <Environment blur={1}>
             <Lightformer
               intensity={2}
               color="white"
@@ -61,21 +65,7 @@ export default function Lanyard({ position = [0, 0, 30], gravity = [0, -40, 0], 
               scale={[100, 0.1, 1]}
             />
             <Lightformer
-              intensity={3}
-              color="white"
-              position={[-1, -1, 1]}
-              rotation={[0, 0, Math.PI / 3]}
-              scale={[100, 0.1, 1]}
-            />
-            <Lightformer
-              intensity={3}
-              color="white"
-              position={[1, 1, 1]}
-              rotation={[0, 0, Math.PI / 3]}
-              scale={[100, 0.1, 1]}
-            />
-            <Lightformer
-              intensity={10}
+              intensity={5}
               color="white"
               position={[-10, 0, 14]}
               rotation={[0, Math.PI / 2, Math.PI / 3]}
@@ -88,7 +78,7 @@ export default function Lanyard({ position = [0, 0, 30], gravity = [0, -40, 0], 
   );
 }
 
-function Band({ maxSpeed = 50, minSpeed = 0, isMobile = false }) {
+function Band({ maxSpeed = 30, minSpeed = 0, isMobile = false }) {
   const band = useRef<any>(null),
     fixed = useRef<any>(null),
     j1 = useRef<any>(null),

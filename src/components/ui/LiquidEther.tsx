@@ -106,7 +106,7 @@ export default function LiquidEther({
 
       init(container: HTMLElement) {
         this.container = container;
-        this.pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+        this.pixelRatio = Math.min(window.devicePixelRatio || 1, 1.5);
         this.resize();
         this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         this.renderer.autoClear = false;
@@ -793,10 +793,10 @@ export default function LiquidEther({
 
       constructor(options: any) {
         this.options = {
-          iterations_poisson: 32,
-          iterations_viscous: 32,
+          iterations_poisson: 16,
+          iterations_viscous: 16,
           mouse_force: 20,
-          resolution: 0.5,
+          resolution: 0.4,
           cursor_size: 100,
           viscous: 30,
           isBounce: false,
