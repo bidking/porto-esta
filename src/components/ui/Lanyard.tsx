@@ -13,8 +13,9 @@ extend({ MeshLineGeometry, MeshLineMaterial });
 const REMOTE_CARD = 'https://raw.githubusercontent.com/DavidHDev/react-bits/master/src/assets/lanyard/card.glb';
 const REMOTE_LANYARD = 'https://raw.githubusercontent.com/DavidHDev/react-bits/master/src/assets/lanyard/lanyard.png';
 
-const cardGLBPath = '/assets/card.glb';
-const lanyardPath = '/assets/lanyard.png';
+// Use remote assets to ensure they load correctly
+const cardGLBPath = REMOTE_CARD;
+const lanyardPath = REMOTE_LANYARD;
 
 // Preload assets for faster spawning
 useGLTF.preload(cardGLBPath);
