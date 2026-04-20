@@ -1,23 +1,24 @@
 /* eslint-disable react/no-unknown-property */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, Suspense, useMemo } from 'react';
 import { Canvas, extend, useFrame } from '@react-three/fiber';
 import { useGLTF, useTexture, Environment, Lightformer } from '@react-three/drei';
 import { BallCollider, CuboidCollider, Physics, RigidBody, useRopeJoint, useSphericalJoint } from '@react-three/rapier';
 import { MeshLineGeometry, MeshLineMaterial } from 'meshline';
 import * as THREE from 'three';
+import './Lanyard.css';
+
+extend({ MeshLineGeometry, MeshLineMaterial });
 
 // Asset configuration
 const REMOTE_CARD = 'https://raw.githubusercontent.com/DavidHDev/react-bits/master/src/assets/lanyard/card.glb';
 const REMOTE_LANYARD = 'https://raw.githubusercontent.com/DavidHDev/react-bits/master/src/assets/lanyard/lanyard.png';
 
-// Fallback logic: Try to use local files if defined, else use remote
-const cardGLB = REMOTE_CARD; 
-const lanyard = REMOTE_LANYARD;
+const cardGLBPath = '/assets/card.glb';
+const lanyardPath = '/assets/lanyard.png';
 
-import './Lanyard.css';
-import { Suspense, useMemo } from 'react';
-
-extend({ MeshLineGeometry, MeshLineMaterial });
+// Preload assets for faster spawning
+useGLTF.preload(cardGLBPath);
+useTexture.preload(lanyardPath);
 
 export default function Lanyard({ position = [0, 0, 30], gravity = [0, -40, 0], fov = 20, transparent = true }: {
   position?: [number, number, number];
@@ -35,7 +36,7 @@ export default function Lanyard({ position = [0, 0, 30], gravity = [0, -40, 0], 
 
     const observer = new IntersectionObserver(
       ([entry]) => setIsVisible(entry.isIntersecting),
-      { threshold: 0.05 }
+      { threshold: 0.01 } // Trigger even with tiny sliver visible
     );
     
     if (containerRef.current) {
@@ -48,14 +49,11 @@ export default function Lanyard({ position = [0, 0, 30], gravity = [0, -40, 0], 
     };
   }, []);
 
-  // Use local assets as requested by user
-  const cardGLBPath = '/assets/card.glb';
-  const lanyardPath = '/assets/lanyard.png';
-
   return (
     <div ref={containerRef} className="lanyard-wrapper">
       <Suspense fallback={<div className="w-full h-full bg-white/5 animate-pulse rounded-2xl" />}>
-        {isVisible && (
+        {/* Keep Canvas mounted but hide with CSS when not visible to save GPU without re-mounting */}
+        <div style={{ visibility: isVisible ? 'visible' : 'hidden', width: '100%', height: '100%' }}>
           <Canvas
             camera={{ position: position as any, fov: fov }}
             dpr={[1, 1.2]}
@@ -67,28 +65,24 @@ export default function Lanyard({ position = [0, 0, 30], gravity = [0, -40, 0], 
             }}
             onCreated={({ gl }) => {
               gl.setClearColor(new THREE.Color(0x000000), transparent ? 0 : 1);
-              gl.domElement.addEventListener('webglcontextlost', (e) => {
-                e.preventDefault();
-                console.warn("Lanyard: Context Lost. Reloading scene...");
-              }, false);
             }}
           >
             <ambientLight intensity={Math.PI * 0.5} />
-            <Physics gravity={gravity as any} timeStep={1 / 30}>
-              <Band isMobile={isMobile} cardGLB={cardGLBPath} lanyardImg={lanyardPath} />
+            <Physics gravity={gravity as any} timeStep={1 / 30} paused={!isVisible}>
+              <Band isMobile={isMobile} cardGLB={cardGLBPath} lanyardImg={lanyardPath} isVisible={isVisible} />
             </Physics>
             <Environment blur={1}>
               <Lightformer intensity={2} color="white" position={[0, -1, 5]} rotation={[0, 0, Math.PI / 3]} scale={[100, 0.1, 1]} />
               <Lightformer intensity={5} color="white" position={[-10, 0, 14]} rotation={[0, Math.PI / 2, Math.PI / 3]} scale={[100, 10, 1]} />
             </Environment>
           </Canvas>
-        )}
+        </div>
       </Suspense>
     </div>
   );
 }
 
-function Band({ maxSpeed = 30, minSpeed = 0, isMobile = false, cardGLB, lanyardImg }: any) {
+function Band({ maxSpeed = 30, minSpeed = 0, isMobile = false, cardGLB, lanyardImg, isVisible }: any) {
   const band = useRef<any>(null),
     fixed = useRef<any>(null),
     j1 = useRef<any>(null),
@@ -100,7 +94,8 @@ function Band({ maxSpeed = 30, minSpeed = 0, isMobile = false, cardGLB, lanyardI
     rot = new THREE.Vector3(),
     dir = new THREE.Vector3();
   const segmentProps: any = { type: 'dynamic', canSleep: true, colliders: false, angularDamping: 4, linearDamping: 4 };
-  
+
+  // Use cached assets
   const { nodes, materials } = useGLTF(cardGLB) as any;
   const texture = useTexture(lanyardImg) as THREE.Texture;
   
