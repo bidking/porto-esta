@@ -1,10 +1,29 @@
 import { motion } from "motion/react";
 import Section from "./Section";
+import LiquidEther from "./ui/LiquidEther";
 
 export default function Hero() {
   return (
-    <Section id="hero" className="items-center text-center overflow-hidden">
-      <div className="absolute inset-0 mesh-gradient opacity-30 pointer-events-none" />
+    <Section id="hero" className="items-center text-center overflow-hidden relative">
+      <div className="absolute inset-0 z-0 pointer-events-none opacity-40">
+        <LiquidEther
+          colors={[ '#5227FF', '#FF9FFC', '#B497CF' ]}
+          mouseForce={20}
+          cursorSize={100}
+          isViscous={true}
+          viscous={30}
+          iterationsViscous={32}
+          iterationsPoisson={32}
+          resolution={0.5}
+          isBounce={false}
+          autoDemo={true}
+          autoSpeed={0.5}
+          autoIntensity={2.2}
+          takeoverDuration={0.25}
+          autoResumeDelay={3000}
+          autoRampDuration={0.6}
+        />
+      </div>
       
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}

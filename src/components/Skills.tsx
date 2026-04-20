@@ -1,43 +1,81 @@
 import Section from "./Section";
 import { motion } from "motion/react";
-import { Server, Database, Code, Shield, Cpu, Cloud } from "lucide-react";
+import LogoLoop, { LogoItem } from "./ui/LogoLoop";
+import { 
+  SiNginx, 
+  SiDocker, 
+  SiLaravel, 
+  SiPhp, 
+  SiPython, 
+  SiPostgresql, 
+  SiUbuntu, 
+  SiDebian, 
+  SiProxmox, 
+  SiLinux, 
+  SiJavascript, 
+  SiTypescript,
+  SiReact,
+  SiTailwindcss
+} from "react-icons/si";
 
-const skills = [
-  { name: "Nginx", icon: Server, color: "text-green-400" },
-  { name: "Docker", icon: Cloud, color: "text-blue-400" },
-  { name: "Proxmox", icon: Cpu, color: "text-orange-400" },
-  { name: "Laravel", icon: Code, color: "text-red-400" },
-  { name: "SQL", icon: Database, color: "text-yellow-400" },
-  { name: "Security", icon: Shield, color: "text-purple-400" },
+const techLogos: LogoItem[] = [
+  { node: <SiNginx />, title: "Nginx" },
+  { node: <SiDocker />, title: "Docker" },
+  { node: <SiProxmox />, title: "Proxmox" },
+  { node: <SiLaravel />, title: "Laravel" },
+  { node: <SiPhp />, title: "PHP" },
+  { node: <SiPython />, title: "Python" },
+  { node: <SiPostgresql />, title: "PostgreSQL" },
+  { node: <SiUbuntu />, title: "Ubuntu" },
+  { node: <SiDebian />, title: "Debian" },
+  { node: <SiLinux />, title: "Linux" },
+  { node: <SiJavascript />, title: "JavaScript" },
+  { node: <SiTypescript />, title: "TypeScript" },
+  { node: <SiReact />, title: "React" },
+  { node: <SiTailwindcss />, title: "Tailwind CSS" },
 ];
 
 export default function Skills() {
   return (
-    <Section id="skills" className="items-center">
-      <h2 className="text-4xl font-bold mb-16 tracking-tight text-center">Tech Orbit</h2>
+    <Section id="skills" className="overflow-hidden">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
+        className="text-center mb-16"
+      >
+        <h2 className="text-4xl font-bold tracking-tight mb-4">Tech Stack</h2>
+        <p className="text-white/50 max-w-2xl mx-auto">
+          The tools and technologies I use to build, deploy, and manage robust infrastructures.
+        </p>
+      </motion.div>
       
-      <div className="relative w-full max-w-4xl h-[400px] flex items-center justify-center">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-64 h-64 rounded-full border border-white/5 animate-pulse" />
-          <div className="absolute w-96 h-96 rounded-full border border-white/5" />
-        </div>
+      <div className="relative py-20 flex flex-col gap-12">
+        <LogoLoop
+          logos={techLogos}
+          speed={40}
+          direction="left"
+          logoHeight={64}
+          gap={80}
+          hoverSpeed={10}
+          scaleOnHover
+          fadeOut
+          fadeOutColor="#000000"
+        />
         
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-8 relative z-10">
-          {skills.map((skill, index) => (
-            <motion.div
-              key={skill.name}
-              initial={{ opacity: 0, scale: 0.8 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              transition={{ delay: index * 0.1 }}
-              whileHover={{ scale: 1.1, y: -5 }}
-              className="glass p-8 rounded-3xl flex flex-col items-center gap-4 interactive group"
-            >
-              <skill.icon className={`w-12 h-12 ${skill.color} transition-transform group-hover:rotate-12`} />
-              <span className="font-medium text-white/80">{skill.name}</span>
-            </motion.div>
-          ))}
-        </div>
+        <LogoLoop
+          logos={[...techLogos].reverse()}
+          speed={30}
+          direction="right"
+          logoHeight={64}
+          gap={80}
+          hoverSpeed={5}
+          scaleOnHover
+          fadeOut
+          fadeOutColor="#000000"
+        />
       </div>
     </Section>
   );
 }
+

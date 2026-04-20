@@ -7,28 +7,17 @@ import Hero from "./components/Hero";
 import About from "./components/About";
 import CareerTimeline from "./components/CareerTimeline";
 import Projects from "./components/Projects";
+import ScrollVelocity from "./components/ui/ScrollVelocity";
 import Skills from "./components/Skills";
 import DevOpsDashboard from "./components/DevOpsDashboard";
 import CommentSection from "./components/CommentSection";
 import Contact from "./components/Contact";
 import Navbar from "./components/Navbar";
-import FluidGlass from "./components/FluidGlass";
 import GeminiAssistant from "./components/GeminiAssistant";
 
 export default function App() {
   return (
     <main className="relative min-h-screen bg-black selection:bg-white/20">
-      <FluidGlass 
-        mode="lens"
-        lensProps={{
-          scale: 0.2,
-          ior: 1.15,
-          thickness: 5,
-          chromaticAberration: 0.1,
-          anisotropy: 0.01  
-        }}
-      />
-      
       <Navbar />
       <GeminiAssistant />
       
@@ -37,6 +26,13 @@ export default function App() {
         <About />
         <CareerTimeline />
         <Projects />
+        <div className="py-20 bg-zinc-950/50">
+          <ScrollVelocity 
+            texts={['DevOps Architect', 'System Administrator']} 
+            velocity={100} 
+            className="text-white font-black italic tracking-tighter"
+          />
+        </div>
         <Skills />
         <DevOpsDashboard />
         <CommentSection />
