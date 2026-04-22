@@ -21,6 +21,14 @@
           "type": "string",
           "description": "The unique ID of the user."
         },
+        "gifUrl": {
+          "type": "string",
+          "description": "Optional URL for a GIF."
+        },
+        "replyToId": {
+          "type": "string",
+          "description": "ID of the parent comment if this is a reply."
+        },
         "createdAt": {
           "type": "string",
           "format": "date-time",

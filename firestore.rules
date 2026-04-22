@@ -12,6 +12,8 @@ service cloud.firestore {
     //   - user: string (required, 1-100 chars)
     //   - photo: string (optional, URL)
     //   - uid: string (required, matches auth.uid)
+    //   - gifUrl: string (optional, URL)
+    //   - replyToId: string (optional, matches an existing comment ID)
     //   - createdAt: timestamp (required, server-assigned)
     //
     // ===============================================================
@@ -29,14 +31,16 @@ service cloud.firestore {
     }
 
     function isValidComment(data) {
-      // Check required fields and total count (photo is optional)
+      // Check required fields and total count (photo, gifUrl, replyToId are optional)
       let hasRequired = data.keys().hasAll(['text', 'user', 'uid', 'createdAt']);
-      let hasCorrectCount = data.keys().size() >= 4 && data.keys().size() <= 5;
+      let hasCorrectCount = data.keys().size() >= 4 && data.keys().size() <= 7;
       
       return hasRequired && hasCorrectCount &&
              data.text is string && data.text.size() >= 1 && data.text.size() <= 1000 &&
              data.user is string && data.user.size() >= 1 && data.user.size() <= 100 &&
              (data.photo == null || data.photo == "" || (data.photo is string && data.photo.size() <= 500)) &&
+             (data.gifUrl == null || data.gifUrl == "" || (data.gifUrl is string && data.gifUrl.size() <= 500)) &&
+             (data.replyToId == null || (data.replyToId is string && data.replyToId.size() <= 100)) &&
              (
                (request.auth == null && data.uid == "anonymous") ||
                (request.auth != null && data.uid == request.auth.uid)
