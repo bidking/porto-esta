@@ -52,14 +52,14 @@ export default function CommentSection() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newComment.trim() || !user) return;
+    if (!newComment.trim()) return;
 
     try {
       await addDoc(collection(db, "comments"), {
         text: newComment,
-        user: user.displayName || "Anonymous",
-        photo: user.photoURL || "",
-        uid: user.uid,
+        user: user?.displayName || "Anonymous",
+        photo: user?.photoURL || "",
+        uid: user?.uid || "anonymous",
         createdAt: serverTimestamp()
       });
       setNewComment("");
@@ -72,40 +72,49 @@ export default function CommentSection() {
     <Section id="comments" className="max-w-3xl mx-auto">
       <div className="mb-12 text-center">
         <h2 className="text-4xl font-bold mb-4 tracking-tight dark:text-white text-zinc-900 transition-colors duration-300">The Feedback Loop</h2>
-        <p className="dark:text-white/50 text-zinc-600 transition-colors duration-300">Leave a message in the glass terminal.</p>
+        <p className="dark:text-white/50 text-zinc-600 transition-colors duration-300">Leave a message in the glass terminal. (Anonymous allowed!)</p>
       </div>
 
       <div className="glass p-8 rounded-[40px] mb-8 transition-all duration-300">
-        {!user ? (
-          <div className="text-center py-8">
-            <p className="dark:text-white/60 text-zinc-600 mb-6 transition-colors duration-300">Sign in to join the conversation</p>
-            <button 
-              onClick={handleLogin}
-              className="px-8 py-3 dark:bg-white dark:text-black bg-zinc-900 text-white rounded-full font-medium interactive transition-colors duration-300"
-            >
-              Sign in with Google
-            </button>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="flex gap-4">
-            <img src={user.photoURL} alt={user.displayName} className="w-12 h-12 rounded-full border dark:border-white/10 border-zinc-200 shadow-sm" />
+        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+          <div className="flex gap-4 items-start">
+            {user ? (
+              <img src={user.photoURL} alt={user.displayName} className="w-12 h-12 rounded-full border dark:border-white/10 border-zinc-200 shadow-sm" />
+            ) : (
+              <div className="w-12 h-12 rounded-full dark:bg-white/10 bg-black/5 flex items-center justify-center shrink-0 border dark:border-white/10 border-zinc-200">
+                <User className="w-6 h-6 dark:text-white/40 text-zinc-400" />
+              </div>
+            )}
             <div className="flex-1 relative">
-              <input 
-                type="text"
+              <textarea 
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
-                placeholder="Write a comment..."
-                className="w-full dark:bg-white/5 bg-zinc-50 dark:text-white text-zinc-900 border dark:border-white/10 border-zinc-200 rounded-2xl px-6 py-3 focus:outline-none dark:focus:border-white/30 focus:border-zinc-400 dark:shadow-none shadow-inner transition-all duration-300"
+                placeholder={user ? `What's on your mind, ${user.displayName}?` : "Type your message here... (Anonymous)"}
+                className="w-full h-32 dark:bg-white/5 bg-zinc-50 dark:text-white text-zinc-900 border dark:border-white/10 border-zinc-200 rounded-2xl px-6 py-4 focus:outline-none dark:focus:border-white/30 focus:border-zinc-400 dark:shadow-none shadow-inner transition-all duration-300 resize-none"
               />
               <button 
                 type="submit"
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-2 dark:text-white/40 text-zinc-500 dark:hover:text-white hover:text-zinc-900 transition-colors"
+                disabled={!newComment.trim()}
+                className="absolute right-4 bottom-4 p-3 dark:bg-white dark:text-black bg-zinc-900 text-white rounded-xl interactive transition-all disabled:opacity-50"
               >
                 <Send className="w-5 h-5" />
               </button>
             </div>
-          </form>
-        )}
+          </div>
+          
+          {!user && (
+            <div className="flex items-center justify-between pt-4 border-t dark:border-white/5 border-zinc-100">
+              <span className="text-xs dark:text-white/30 text-zinc-400">Posting as Anonymous</span>
+              <button 
+                type="button"
+                onClick={handleLogin}
+                className="text-xs font-medium text-blue-500 hover:text-blue-400 transition-colors"
+              >
+                Sign in with Google for profile pic
+              </button>
+            </div>
+          )}
+        </form>
       </div>
 
       <div className="space-y-4">
