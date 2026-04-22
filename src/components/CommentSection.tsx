@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "motion/react";
 import Section from "./Section";
 import { Send, User, Reply, X, Image as ImageIcon, Search, Heart } from "lucide-react";
 import { db, auth } from "@/src/lib/firebase";
-import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, writeBatch, doc, increment, getDoc } from "firebase/firestore";
+import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, increment, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
 import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 
 interface Comment {
@@ -14,13 +14,13 @@ interface Comment {
   uid: string;
   gifUrl?: string;
   replyToId?: string;
-  likesCount?: number;
+  likes: number;
+  likedBy: string[];
   createdAt: any;
 }
 
 export default function CommentSection() {
   const [comments, setComments] = useState<Comment[]>([]);
-  const [userLikes, setUserLikes] = useState<Record<string, boolean>>({});
   const [newComment, setNewComment] = useState("");
   const [user, setUser] = useState<any>(null);
   const [replyTo, setReplyTo] = useState<Comment | null>(null);
@@ -63,31 +63,6 @@ export default function CommentSection() {
     };
   }, []);
 
-  // Track likes for current user
-  useEffect(() => {
-    if (!db) return;
-    
-    const deviceId = localStorage.getItem('deviceId') || '';
-    const likeUid = user?.uid || (deviceId ? `anon_${deviceId}` : '');
-    if (!likeUid) return;
-
-    // Listen to likes subcollections for user
-    const unsubscribers: (() => void)[] = [];
-    
-    comments.forEach(comment => {
-      const likeDoc = doc(db, "comments", comment.id, "likes", likeUid);
-      const unsub = onSnapshot(likeDoc, (doc) => {
-        setUserLikes(prev => ({
-          ...prev,
-          [comment.id]: doc.exists()
-        }));
-      });
-      unsubscribers.push(unsub);
-    });
-
-    return () => unsubscribers.forEach(u => u());
-  }, [user, comments.map(c => c.id).join(','), localStorage.getItem('deviceId')]);
-
   const handleLogin = async () => {
     const provider = new GoogleAuthProvider();
     try {
@@ -118,30 +93,25 @@ export default function CommentSection() {
     }
   };
 
-  const handleLike = async (commentId: string) => {
-    const isLiked = userLikes[commentId];
-    // Use a device-specific ID for anonymous likes if not logged in
-    const deviceId = localStorage.getItem('deviceId') || (() => {
-      const id = Math.random().toString(36).substring(2) + Date.now().toString(36);
-      localStorage.setItem('deviceId', id);
-      return id;
-    })();
-    
+  const handleLike = async (commentId: string, commentLikedBy: string[] = []) => {
+    const deviceId = localStorage.getItem('deviceId');
     const likeUid = user?.uid || `anon_${deviceId}`;
-    const batch = writeBatch(db);
+    const isCurrentlyLiked = commentLikedBy.includes(likeUid);
+    
     const commentRef = doc(db, "comments", commentId);
-    const likeRef = doc(db, "comments", commentId, "likes", likeUid);
-
-    if (isLiked) {
-      batch.update(commentRef, { likesCount: increment(-1) });
-      batch.delete(likeRef);
-    } else {
-      batch.update(commentRef, { likesCount: increment(1) });
-      batch.set(likeRef, { uid: likeUid, createdAt: serverTimestamp() });
-    }
 
     try {
-      await batch.commit();
+      if (isCurrentlyLiked) {
+        await updateDoc(commentRef, {
+          likes: increment(-1),
+          likedBy: arrayRemove(likeUid)
+        });
+      } else {
+        await updateDoc(commentRef, {
+          likes: increment(1),
+          likedBy: arrayUnion(likeUid)
+        });
+      }
     } catch (error) {
       console.error("Error toggling like", error);
     }
@@ -165,7 +135,8 @@ export default function CommentSection() {
         user: user?.displayName || "Anonymous",
         uid: commentUid,
         createdAt: serverTimestamp(),
-        likesCount: 0
+        likes: 0,
+        likedBy: []
       };
 
       if (user?.photoURL) commentData.photo = user.photoURL;
@@ -185,6 +156,8 @@ export default function CommentSection() {
 
   const parentComments = comments.filter(c => !c.replyToId);
   const getReplies = (parentId: string) => comments.filter(c => c.replyToId === parentId).reverse();
+
+  const currentLikeUid = user?.uid || (localStorage.getItem('deviceId') ? `anon_${localStorage.getItem('deviceId')}` : '');
 
   return (
     <Section id="comments" className="max-w-3xl mx-auto">
@@ -294,8 +267,8 @@ export default function CommentSection() {
             <div key={comment.id} className="space-y-4">
               <CommentCard 
                 comment={comment} 
-                isLiked={!!userLikes[comment.id]}
-                onLike={() => handleLike(comment.id)}
+                isLiked={comment.likedBy?.includes(currentLikeUid)}
+                onLike={() => handleLike(comment.id, comment.likedBy)}
                 onReply={() => {
                   setReplyTo(comment);
                   window.scrollTo({ top: document.getElementById('comments')?.offsetTop! - 100, behavior: 'smooth' });
@@ -307,8 +280,8 @@ export default function CommentSection() {
                     key={reply.id} 
                     comment={reply} 
                     isReply 
-                    isLiked={!!userLikes[reply.id]}
-                    onLike={() => handleLike(reply.id)}
+                    isLiked={reply.likedBy?.includes(currentLikeUid)}
+                    onLike={() => handleLike(reply.id, reply.likedBy)}
                   />
                 ))}
               </div>
@@ -350,7 +323,7 @@ function CommentCard({ comment, onReply, onLike, isLiked, isReply = false }: { c
         <div className="mt-3 flex items-center gap-4">
           <button onClick={onLike} className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider transition-all ${isLiked ? 'text-red-500' : 'dark:text-white/30 text-zinc-400 hover:text-red-400'}`}>
             <Heart className={`w-3.5 h-3.5 ${isLiked ? 'fill-current' : ''}`} />
-            <span>{comment.likesCount || 0}</span>
+            <span>{comment.likes || 0}</span>
           </button>
           {!isReply && onReply && (
             <button onClick={onReply} className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider dark:text-white/30 text-zinc-400 hover:dark:text-white hover:text-zinc-900 transition-all">
