@@ -34,7 +34,7 @@ export default function CareerTimeline() {
             initial={{ opacity: 0, x: i % 2 === 0 ? -50 : 50 }}
             whileInView={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: i * 0.2 }}
-            className={`relative mb-12 md:w-1/2 ${i % 2 === 0 ? "md:pr-12 md:text-right md:left-[-50%]" : "md:pl-12 md:left-[50%]"}`}
+            className={`relative mb-12 md:w-1/2 ${i % 2 === 0 ? "md:pr-12 md:text-right md:left-[-50%]" : "md:pl-12 md:left-0"}`}
           >
             <div className={`absolute top-0 w-4 h-4 rounded-full dark:bg-white bg-zinc-900 dark:border-black border-slate-50 border-4 z-10 transition-colors duration-300 ${i % 2 === 0 ? "right-[-8px] md:right-[-8px]" : "left-[-8px] md:left-[-8px]"}`} />
             
