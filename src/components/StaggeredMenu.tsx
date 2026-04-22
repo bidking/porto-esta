@@ -30,11 +30,12 @@ interface StaggeredMenuProps {
   closeOnClickAway?: boolean;
   onMenuOpen?: () => void;
   onMenuClose?: () => void;
+  themeNode?: React.ReactNode;
 }
 
 export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
   position = 'right',
-  colors = ['#B497CF', '#5227FF'],
+  colors = ['#18181b', '#27272a', '#3f3f46'],
   items = [],
   socialItems = [],
   displaySocials = true,
@@ -48,7 +49,8 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
   isFixed = false,
   closeOnClickAway = true,
   onMenuOpen,
-  onMenuClose
+  onMenuClose,
+  themeNode
 }) => {
   const [open, setOpen] = useState(false);
   const openRef = useRef(false);
@@ -396,22 +398,29 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
         })()}
       </div>
       <header className="staggered-menu-header" aria-label="Main navigation header">
-        <div className="sm-logo" aria-label="Logo">
-          {logoUrl ? (
-            <img
-              src={logoUrl}
-              alt="Logo"
-              className="sm-logo-img"
-              draggable={false}
-              width={110}
-              height={24}
-            />
-          ) : (
-             <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center font-bold text-white">S</div>
-                <span className="font-bold text-lg tracking-tight dark:text-white text-zinc-900">Astro</span>
-             </div>
+        <div className="flex items-center gap-4">
+          {themeNode && (
+            <div className="pointer-events-auto">
+              {themeNode}
+            </div>
           )}
+          <div className="sm-logo" aria-label="Logo">
+            {logoUrl ? (
+              <img
+                src={logoUrl}
+                alt="Logo"
+                className="sm-logo-img"
+                draggable={false}
+                width={110}
+                height={24}
+              />
+            ) : (
+              <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center font-bold text-white">S</div>
+                  <span className="font-bold text-lg tracking-tight dark:text-white text-zinc-900">Astro</span>
+              </div>
+            )}
+          </div>
         </div>
         <button
           ref={toggleBtnRef}
@@ -438,7 +447,7 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
         </button>
       </header>
 
-      <aside id="staggered-menu-panel" ref={panelRef as any} className="staggered-menu-panel" aria-hidden={!open}>
+      <aside id="staggered-menu-panel" ref={panelRef as any} className="staggered-menu-panel custom-scrollbar" aria-hidden={!open}>
         <div className="sm-panel-inner">
           <ul className="sm-panel-list" role="list" data-numbering={displayItemNumbering || undefined}>
             {items && items.length ? (

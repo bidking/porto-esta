@@ -28,22 +28,26 @@ export default function Navbar() {
           isFixed 
           items={navItems} 
           socialItems={socialItems}
-          colors={['#18181b', '#27272a', '#3f3f46']}
+          colors={theme === 'dark' 
+            ? ['#18181b', '#27272a', '#3f3f46'] 
+            : ['#f4f4f5', '#e4e4e7', '#d4d4d8']
+          }
           menuButtonColor={theme === 'dark' ? '#fff' : '#000'}
-          openMenuButtonColor="#fff"
+          openMenuButtonColor={theme === 'dark' ? '#fff' : '#000'}
+          themeNode={
+            <button 
+              onClick={toggleTheme}
+              className="p-2 rounded-xl glass transition-colors interactive"
+              aria-label="Toggle theme"
+            >
+              {theme === "dark" ? (
+                <Sun className="w-5 h-5 text-white" />
+              ) : (
+                <Moon className="w-5 h-5 text-zinc-900" />
+              )}
+            </button>
+          }
         />
-        {/* Floating Theme Toggle for Mobile */}
-        <button 
-          onClick={toggleTheme}
-          className="fixed top-6 left-6 z-[100] p-3 rounded-2xl glass transition-colors interactive"
-          aria-label="Toggle theme"
-        >
-          {theme === "dark" ? (
-            <Sun className="w-5 h-5 text-white" />
-          ) : (
-            <Moon className="w-5 h-5 text-zinc-900" />
-          )}
-        </button>
       </div>
 
       {/* Desktop Navbar */}
