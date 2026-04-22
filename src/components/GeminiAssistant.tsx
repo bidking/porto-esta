@@ -31,31 +31,33 @@ export default function GeminiAssistant() {
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="glass-dark w-[350px] h-[500px] rounded-[32px] mb-4 flex flex-col overflow-hidden shadow-2xl"
+            className="dark:glass-dark bg-white border border-zinc-200 dark:border-white/5 w-[350px] h-[500px] rounded-[32px] mb-4 flex flex-col overflow-hidden shadow-2xl transition-all duration-300"
           >
-            <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/5">
+            <div className="p-6 border-b dark:border-white/5 border-zinc-100 flex items-center justify-between dark:bg-white/5 bg-zinc-50">
               <div className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-blue-400" />
-                <span className="font-bold text-sm tracking-tight">Sta AI Assistant</span>
+                <Sparkles className="w-5 h-5 text-blue-500" />
+                <span className="font-bold text-sm tracking-tight dark:text-white text-zinc-900 transition-colors duration-300">Sta AI Assistant</span>
               </div>
-              <button onClick={() => setIsOpen(false)} className="p-1 hover:bg-white/10 rounded-full transition-colors">
-                <X className="w-5 h-5 text-white/40" />
+              <button onClick={() => setIsOpen(false)} className="p-1 dark:hover:bg-white/10 hover:bg-black/5 rounded-full transition-colors">
+                <X className="w-5 h-5 dark:text-white/40 text-zinc-400" />
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-transparent">
               {messages.length === 0 && (
                 <div className="text-center py-12">
-                  <Sparkles className="w-12 h-12 text-white/10 mx-auto mb-4" />
-                  <p className="text-sm text-white/40">Ask me anything about Sta's experience or skills.</p>
+                  <Sparkles className="w-12 h-12 dark:text-white/10 text-zinc-200 mx-auto mb-4" />
+                  <p className="text-sm dark:text-white/40 text-zinc-500">Ask me anything about Sta's experience or skills.</p>
                 </div>
               )}
               {messages.map((msg, i) => (
                 <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                  <div className={`max-w-[80%] p-4 rounded-2xl text-sm ${
-                    msg.role === "user" ? "bg-white text-black" : "glass text-white/80"
+                  <div className={`max-w-[80%] p-4 rounded-2xl text-sm transition-colors duration-300 ${
+                    msg.role === "user" 
+                      ? "dark:bg-white dark:text-black bg-zinc-900 text-white" 
+                      : "dark:glass dark:bg-white/5 bg-zinc-100 dark:text-white/80 text-zinc-700 border dark:border-white/10 border-zinc-200"
                   }`}>
-                    <div className="prose prose-invert prose-sm">
+                    <div className={`prose prose-sm transition-colors duration-300 ${msg.role === "user" ? "dark:prose-invert prose-invert" : "dark:prose-invert text-inherit"}`}>
                       <ReactMarkdown>{msg.content}</ReactMarkdown>
                     </div>
                   </div>
@@ -63,18 +65,18 @@ export default function GeminiAssistant() {
               ))}
               {isLoading && (
                 <div className="flex justify-start">
-                  <div className="glass p-4 rounded-2xl">
+                  <div className="dark:glass bg-zinc-100 border dark:border-white/10 border-zinc-200 p-4 rounded-2xl">
                     <div className="flex gap-1">
-                      <div className="w-1.5 h-1.5 bg-white/40 rounded-full animate-bounce" />
-                      <div className="w-1.5 h-1.5 bg-white/40 rounded-full animate-bounce [animation-delay:0.2s]" />
-                      <div className="w-1.5 h-1.5 bg-white/40 rounded-full animate-bounce [animation-delay:0.4s]" />
+                      <div className="w-1.5 h-1.5 dark:bg-white/40 bg-zinc-400 rounded-full animate-bounce" />
+                      <div className="w-1.5 h-1.5 dark:bg-white/40 bg-zinc-400 rounded-full animate-bounce [animation-delay:0.2s]" />
+                      <div className="w-1.5 h-1.5 dark:bg-white/40 bg-zinc-400 rounded-full animate-bounce [animation-delay:0.4s]" />
                     </div>
                   </div>
                 </div>
               )}
             </div>
 
-            <div className="p-4 border-t border-white/5">
+            <div className="p-4 border-t dark:border-white/5 border-zinc-100">
               <div className="relative">
                 <input
                   type="text"
@@ -82,11 +84,11 @@ export default function GeminiAssistant() {
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSend()}
                   placeholder="Ask Sta AI..."
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-white/30 transition-colors pr-10"
+                  className="w-full dark:bg-white/5 bg-zinc-100 border dark:border-white/10 border-zinc-200 rounded-2xl px-4 py-3 text-sm dark:text-white text-zinc-900 focus:outline-none dark:focus:border-white/30 focus:border-zinc-400 transition-colors pr-10"
                 />
                 <button 
                   onClick={handleSend}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-white/40 hover:text-white transition-colors"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 dark:text-white/40 text-zinc-400 dark:hover:text-white hover:text-zinc-900 transition-colors"
                 >
                   <Send className="w-4 h-4" />
                 </button>

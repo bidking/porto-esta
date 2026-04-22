@@ -10,28 +10,53 @@
   --color-glass-highlight: rgba(255, 255, 255, 0.2);
 }
 
+/* Force dark mode to use class selector */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @layer base {
+  html {
+    @apply transition-colors duration-300;
+  }
+  
   body {
-    @apply bg-black text-white font-sans antialiased overflow-x-hidden;
+    @apply antialiased overflow-x-hidden transition-colors duration-300;
+  }
+
+  /* Support for light mode - More interesting aesthetic with soft shadows and mesh hints */
+  html.light body {
+    @apply bg-slate-50 text-slate-900;
+    background: 
+      radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.03) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, rgba(147, 51, 234, 0.03) 0px, transparent 50%),
+      #f8fafc;
+  }
+
+  /* Support for dark mode */
+  html.dark body {
+    @apply bg-black text-white;
     background: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #000000 100%);
   }
 }
 
 @layer utilities {
   .glass {
-    @apply backdrop-blur-2xl bg-white/5 border border-white/10;
+    @apply backdrop-blur-2xl transition-all duration-300 border;
+    /* Light Mode */
+    @apply bg-white/70 border-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.04)];
+    /* Dark Mode - Overriding specifically */
+    @apply dark:bg-white/5 dark:border-white/10 dark:shadow-none;
   }
   
   .glass-dark {
-    @apply backdrop-blur-3xl bg-black/20 border border-white/5;
+    @apply backdrop-blur-3xl bg-black/20 border border-white/5 shadow-2xl;
   }
 
   .mesh-gradient {
     background: 
-      radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
-      radial-gradient(at 100% 0%, rgba(147, 51, 234, 0.15) 0px, transparent 50%),
-      radial-gradient(at 100% 100%, rgba(236, 72, 153, 0.15) 0px, transparent 50%),
-      radial-gradient(at 0% 100%, rgba(16, 185, 129, 0.15) 0px, transparent 50%);
+      radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.1) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(147, 51, 234, 0.1) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, rgba(236, 72, 153, 0.1) 0px, transparent 50%),
+      radial-gradient(at 0% 100%, rgba(16, 185, 129, 0.1) 0px, transparent 50%);
   }
 }
 

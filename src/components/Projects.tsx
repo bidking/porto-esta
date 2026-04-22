@@ -27,8 +27,8 @@ export default function Projects() {
   return (
     <Section id="projects" className="max-w-7xl mx-auto">
       <div className="mb-16">
-        <h2 className="text-4xl font-bold mb-4 tracking-tight">Holographic Showcase</h2>
-        <p className="text-white/50">Engineering solutions for complex problems.</p>
+        <h2 className="text-4xl font-bold mb-4 tracking-tight dark:text-white text-zinc-900 transition-colors duration-300">Holographic Showcase</h2>
+        <p className="dark:text-white/50 text-zinc-600 transition-colors duration-300">Engineering solutions for complex problems.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -39,7 +39,7 @@ export default function Projects() {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.2 }}
             whileHover={{ y: -10 }}
-            className="group glass rounded-[32px] overflow-hidden flex flex-col interactive"
+            className="group glass rounded-[32px] overflow-hidden flex flex-col interactive transition-all duration-300"
           >
             <div className="relative aspect-video overflow-hidden">
               <img 
@@ -48,28 +48,28 @@ export default function Projects() {
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                 referrerPolicy="no-referrer"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t dark:from-black/80 from-zinc-900/60 to-transparent" />
             </div>
             
             <div className="p-8 flex-1 flex flex-col">
               <div className="flex gap-2 mb-4">
                 {project.tags.map(tag => (
-                  <span key={tag} className="text-[10px] font-mono px-2 py-1 rounded-full bg-white/10 text-white/60">
+                  <span key={tag} className="text-[10px] font-mono px-2 py-1 rounded-full dark:bg-white/10 bg-zinc-100 dark:text-white/60 text-zinc-500 transition-colors duration-300">
                     {tag}
                   </span>
                 ))}
               </div>
               
-              <h3 className="text-xl font-bold mb-4">{project.title}</h3>
-              <p className="text-sm text-white/50 leading-relaxed mb-8 flex-1">
+              <h3 className="text-xl font-bold mb-4 dark:text-white text-zinc-900 transition-colors duration-300">{project.title}</h3>
+              <p className="text-sm dark:text-white/50 text-zinc-600 leading-relaxed mb-8 flex-1 transition-colors duration-300">
                 {project.description}
               </p>
               
               <div className="flex items-center gap-4">
-                <button className="p-2 rounded-full glass hover:bg-white/20 transition-colors">
+                <button className="p-2 rounded-full glass dark:text-white text-zinc-900 hover:bg-black/10 dark:hover:bg-white/20 transition-colors">
                   <Github className="w-5 h-5" />
                 </button>
-                <button className="p-2 rounded-full glass hover:bg-white/20 transition-colors">
+                <button className="p-2 rounded-full glass dark:text-white text-zinc-900 hover:bg-black/10 dark:hover:bg-white/20 transition-colors">
                   <ExternalLink className="w-5 h-5" />
                 </button>
               </div>

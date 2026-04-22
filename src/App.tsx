@@ -14,10 +14,19 @@ import CommentSection from "./components/CommentSection";
 import Contact from "./components/Contact";
 import Navbar from "./components/Navbar";
 import GeminiAssistant from "./components/GeminiAssistant";
+import { ThemeProvider } from "./lib/ThemeContext";
 
 export default function App() {
   return (
-    <main className="relative min-h-screen bg-black selection:bg-white/20">
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
+  );
+}
+
+function AppContent() {
+  return (
+    <main className="relative min-h-screen bg-transparent selection:bg-blue-500/30 dark:selection:bg-white/20">
       <Navbar />
       <GeminiAssistant />
       
@@ -26,11 +35,11 @@ export default function App() {
         <About />
         <CareerTimeline />
         <Projects />
-        <div className="py-20 bg-zinc-950/50">
+        <div className="py-20 dark:bg-zinc-950/50 bg-zinc-200/50 transition-colors duration-300">
           <ScrollVelocity 
             texts={['DevOps Architect', 'System Administrator']} 
             velocity={100} 
-            className="text-white font-black italic tracking-tighter"
+            className="dark:text-white text-zinc-900 font-black italic tracking-tighter transition-colors duration-300"
           />
         </div>
         <Skills />
@@ -41,11 +50,11 @@ export default function App() {
       
       {/* Background elements */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-500/10 blur-[120px] rounded-full" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-500/10 blur-[120px] rounded-full" />
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] dark:bg-blue-500/10 bg-blue-500/5 blur-[120px] rounded-full" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] dark:bg-purple-500/10 bg-purple-500/5 blur-[120px] rounded-full" />
       </div>
       
-      <footer className="py-12 text-center text-white/20 text-xs font-mono uppercase tracking-[0.2em]">
+      <footer className="py-12 text-center dark:text-white/20 text-zinc-400 text-xs font-mono uppercase tracking-[0.2em] transition-colors duration-300">
         &copy; 2026 Esta Nur Aliansyah &bull; Built with Gemini AI &bull; iOS 26 Aesthetic
       </footer>
     </main>

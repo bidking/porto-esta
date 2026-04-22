@@ -71,35 +71,35 @@ export default function CommentSection() {
   return (
     <Section id="comments" className="max-w-3xl mx-auto">
       <div className="mb-12 text-center">
-        <h2 className="text-4xl font-bold mb-4 tracking-tight">The Feedback Loop</h2>
-        <p className="text-white/50">Leave a message in the glass terminal.</p>
+        <h2 className="text-4xl font-bold mb-4 tracking-tight dark:text-white text-zinc-900 transition-colors duration-300">The Feedback Loop</h2>
+        <p className="dark:text-white/50 text-zinc-600 transition-colors duration-300">Leave a message in the glass terminal.</p>
       </div>
 
-      <div className="glass p-8 rounded-[40px] mb-8">
+      <div className="glass p-8 rounded-[40px] mb-8 transition-all duration-300">
         {!user ? (
           <div className="text-center py-8">
-            <p className="text-white/60 mb-6">Sign in to join the conversation</p>
+            <p className="dark:text-white/60 text-zinc-600 mb-6 transition-colors duration-300">Sign in to join the conversation</p>
             <button 
               onClick={handleLogin}
-              className="px-8 py-3 bg-white text-black rounded-full font-medium interactive"
+              className="px-8 py-3 dark:bg-white dark:text-black bg-zinc-900 text-white rounded-full font-medium interactive transition-colors duration-300"
             >
               Sign in with Google
             </button>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="flex gap-4">
-            <img src={user.photoURL} alt={user.displayName} className="w-12 h-12 rounded-full border border-white/10" />
+            <img src={user.photoURL} alt={user.displayName} className="w-12 h-12 rounded-full border dark:border-white/10 border-zinc-200 shadow-sm" />
             <div className="flex-1 relative">
               <input 
                 type="text"
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
                 placeholder="Write a comment..."
-                className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-3 focus:outline-none focus:border-white/30 transition-colors"
+                className="w-full dark:bg-white/5 bg-zinc-50 dark:text-white text-zinc-900 border dark:border-white/10 border-zinc-200 rounded-2xl px-6 py-3 focus:outline-none dark:focus:border-white/30 focus:border-zinc-400 dark:shadow-none shadow-inner transition-all duration-300"
               />
               <button 
                 type="submit"
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-white/40 hover:text-white transition-colors"
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-2 dark:text-white/40 text-zinc-500 dark:hover:text-white hover:text-zinc-900 transition-colors"
               >
                 <Send className="w-5 h-5" />
               </button>
@@ -116,23 +116,23 @@ export default function CommentSection() {
               initial={{ opacity: 0, y: 20, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="glass p-6 rounded-3xl flex gap-4"
+              className="glass p-6 rounded-3xl flex gap-4 transition-all duration-300"
             >
               {comment.photo ? (
-                <img src={comment.photo} alt={comment.user} className="w-10 h-10 rounded-full border border-white/10 shrink-0" />
+                <img src={comment.photo} alt={comment.user} className="w-10 h-10 rounded-full border dark:border-white/10 border-zinc-200 shrink-0" />
               ) : (
-                <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center shrink-0">
-                  <User className="w-5 h-5 text-white/40" />
+                <div className="w-10 h-10 rounded-full dark:bg-white/10 bg-black/5 flex items-center justify-center shrink-0">
+                  <User className="w-5 h-5 dark:text-white/40 text-zinc-400" />
                 </div>
               )}
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="font-bold text-sm">{comment.user}</span>
-                  <span className="text-[10px] text-white/30 font-mono">
+                  <span className="font-bold text-sm dark:text-white text-zinc-900 transition-colors duration-300">{comment.user}</span>
+                  <span className="text-[10px] dark:text-white/30 text-zinc-500 font-mono transition-colors duration-300">
                     {comment.createdAt?.toDate().toLocaleDateString()}
                   </span>
                 </div>
-                <p className="text-sm text-white/70 leading-relaxed">{comment.text}</p>
+                <p className="text-sm dark:text-white/70 text-zinc-600 leading-relaxed transition-colors duration-300">{comment.text}</p>
               </div>
             </motion.div>
           ))}

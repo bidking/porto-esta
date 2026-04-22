@@ -1,6 +1,7 @@
 import Section from "./Section";
 import { motion } from "motion/react";
 import LogoLoop, { LogoItem } from "./ui/LogoLoop";
+import { useTheme } from "../lib/ThemeContext";
 import { 
   SiNginx, 
   SiDocker, 
@@ -36,6 +37,9 @@ const techLogos: LogoItem[] = [
 ];
 
 export default function Skills() {
+  const { theme } = useTheme();
+  const fadeOutColor = theme === "dark" ? "#000000" : "#fafafa";
+
   return (
     <Section id="skills" className="overflow-hidden">
       <motion.div
@@ -44,8 +48,8 @@ export default function Skills() {
         transition={{ duration: 0.8 }}
         className="text-center mb-16"
       >
-        <h2 className="text-4xl font-bold tracking-tight mb-4">Tech Stack</h2>
-        <p className="text-white/50 max-w-2xl mx-auto">
+        <h2 className="text-4xl font-bold tracking-tight mb-4 dark:text-white text-zinc-900 transition-colors duration-300">Tech Stack</h2>
+        <p className="dark:text-white/50 text-zinc-600 max-w-2xl mx-auto transition-colors duration-300">
           The tools and technologies I use to build, deploy, and manage robust infrastructures.
         </p>
       </motion.div>
@@ -60,7 +64,7 @@ export default function Skills() {
           hoverSpeed={10}
           scaleOnHover
           fadeOut
-          fadeOutColor="#000000"
+          fadeOutColor={fadeOutColor}
         />
         
         <LogoLoop
@@ -72,7 +76,7 @@ export default function Skills() {
           hoverSpeed={5}
           scaleOnHover
           fadeOut
-          fadeOutColor="#000000"
+          fadeOutColor={fadeOutColor}
         />
       </div>
     </Section>

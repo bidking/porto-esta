@@ -40,11 +40,11 @@ export default function Hero() {
           DevOps & System Administrator
         </motion.span>
         
-        <h1 className="text-6xl md:text-8xl font-bold tracking-tighter mb-8 bg-clip-text text-transparent bg-gradient-to-b from-white to-white/40">
+        <h1 className="text-6xl md:text-8xl font-bold tracking-tighter mb-8 bg-clip-text text-transparent bg-gradient-to-b dark:from-white dark:to-white/40 from-zinc-900 to-zinc-600 transition-colors duration-300">
           Esta Nur Aliansyah
         </h1>
         
-        <p className="max-w-2xl mx-auto text-lg md:text-xl text-white/60 font-light leading-relaxed mb-12">
+        <p className="max-w-2xl mx-auto text-lg md:text-xl dark:text-white/60 text-zinc-600 font-light leading-relaxed mb-12 transition-colors duration-300">
           Securing Infrastructure, Architecting Experiences. <br />
           Bridging the gap between robust engineering and visionary design.
         </p>
@@ -53,14 +53,14 @@ export default function Hero() {
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="px-8 py-4 bg-white text-black rounded-full font-medium interactive"
+            className="px-8 py-4 dark:bg-white dark:text-black bg-zinc-900 text-white rounded-full font-medium interactive transition-all duration-300"
           >
             View Projects
           </motion.button>
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="px-8 py-4 glass rounded-full font-medium interactive"
+            className="px-8 py-4 glass dark:text-white text-zinc-900 rounded-full font-medium interactive transition-all duration-300 shadow-sm"
           >
             Contact Me
           </motion.button>
