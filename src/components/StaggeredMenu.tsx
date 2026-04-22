@@ -336,9 +336,11 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
     openRef.current = target;
     setOpen(target);
     if (target) {
+      document.body.style.overflow = 'hidden';
       onMenuOpen?.();
       playOpen();
     } else {
+      document.body.style.overflow = '';
       onMenuClose?.();
       playClose();
     }
@@ -351,6 +353,7 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
     if (openRef.current) {
       openRef.current = false;
       setOpen(false);
+      document.body.style.overflow = '';
       onMenuClose?.();
       playClose();
       animateIcon(false);
@@ -358,6 +361,12 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
       animateText(false);
     }
   }, [playClose, animateIcon, animateColor, animateText, onMenuClose]);
+
+  useEffect(() => {
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, []);
 
   useEffect(() => {
     if (!closeOnClickAway || !open) return;

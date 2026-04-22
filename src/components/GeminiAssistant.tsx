@@ -98,14 +98,42 @@ export default function GeminiAssistant() {
         )}
       </AnimatePresence>
 
-      <motion.button
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-16 h-16 rounded-full glass flex items-center justify-center shadow-xl interactive"
-      >
-        {isOpen ? <X className="w-6 h-6" /> : <MessageSquare className="w-6 h-6" />}
-      </motion.button>
+      <AnimatePresence>
+        {!isOpen && (
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            className="absolute bottom-20 right-0 mb-4 mr-2"
+          >
+            <div className="bg-blue-500 text-white px-4 py-2 rounded-2xl rounded-br-none text-xs font-bold shadow-lg whitespace-nowrap animate-float relative">
+              Ask Astro! ✨
+              <div className="absolute top-full right-0 w-2 h-2 bg-blue-500 [clip-path:polygon(100%_0,0_0,100%_100%)]" />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="relative">
+        {!isOpen && (
+          <div className="absolute inset-0 rounded-full animate-ring-pulse pointer-events-none" />
+        )}
+        <motion.button
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          onClick={() => setIsOpen(!isOpen)}
+          className={`w-16 h-16 rounded-full glass flex items-center justify-center shadow-xl interactive relative overflow-hidden ${
+            !isOpen ? 'border-blue-500/50' : ''
+          }`}
+        >
+          {isOpen ? <X className="w-6 h-6" /> : <MessageSquare className="w-6 h-6 text-blue-500 dark:text-blue-400" />}
+          
+          {/* Animated background subtle glow */}
+          {!isOpen && (
+            <div className="absolute inset-0 bg-blue-500/5 dark:bg-blue-400/5 animate-pulse" />
+          )}
+        </motion.button>
+      </div>
     </div>
   );
 }
