@@ -29,6 +29,10 @@
           "type": "string",
           "description": "ID of the parent comment if this is a reply."
         },
+        "likesCount": {
+          "type": "number",
+          "description": "Number of likes the comment has received."
+        },
         "createdAt": {
           "type": "string",
           "format": "date-time",
@@ -36,12 +40,33 @@
         }
       },
       "required": ["text", "user", "uid", "createdAt"]
+    },
+    "Like": {
+      "title": "Like",
+      "description": "A record of a user liking a specific comment.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "The UID of the user who liked the comment."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the like occurred."
+        }
+      },
+      "required": ["uid", "createdAt"]
     }
   },
   "firestore": {
     "/comments/{commentId}": {
       "schema": "Comment",
       "description": "Collection of portfolio comments."
+    },
+    "/comments/{commentId}/likes/{userId}": {
+      "schema": "Like",
+      "description": "Subcollection to track individual likes and prevent duplicates."
     }
   }
 }

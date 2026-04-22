@@ -1,46 +1,45 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // ===============================================================
-    // Assumed Data Model
-    // ===============================================================
-    //
-    // Collection: comments
-    // Document ID: auto-generated
-    // Fields:
-    //   - text: string (required, 1-1000 chars)
-    //   - user: string (required, 1-100 chars)
-    //   - photo: string (optional, URL)
-    //   - uid: string (required, matches auth.uid)
-    //   - gifUrl: string (optional, URL)
-    //   - replyToId: string (optional, matches an existing comment ID)
-    //   - createdAt: timestamp (required, server-assigned)
-    //
-    // ===============================================================
+    
+    // Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
 
     // ===============================================================
     // Helper Functions
     // ===============================================================
     
-    function isAuthenticated() {
+    function isSignedIn() {
       return request.auth != null;
     }
 
     function isOwner(userId) {
-      return isAuthenticated() && request.auth.uid == userId;
+      return isSignedIn() && request.auth.uid == userId;
     }
 
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Validation for Comments
     function isValidComment(data) {
-      // Check required fields and total count (photo, gifUrl, replyToId are optional)
-      let hasRequired = data.keys().hasAll(['text', 'user', 'uid', 'createdAt']);
-      let hasCorrectCount = data.keys().size() >= 4 && data.keys().size() <= 7;
+      let requiredFields = ['text', 'user', 'uid', 'createdAt'];
+      let hasRequired = data.keys().hasAll(requiredFields);
+      let validKeys = data.keys().size() >= 4 && data.keys().size() <= 8; // text, user, uid, createdAt, photo, gifUrl, replyToId, likesCount
       
-      return hasRequired && hasCorrectCount &&
+      return hasRequired && validKeys &&
              data.text is string && data.text.size() >= 1 && data.text.size() <= 1000 &&
              data.user is string && data.user.size() >= 1 && data.user.size() <= 100 &&
              (data.photo == null || data.photo == "" || (data.photo is string && data.photo.size() <= 500)) &&
              (data.gifUrl == null || data.gifUrl == "" || (data.gifUrl is string && data.gifUrl.size() <= 500)) &&
              (data.replyToId == null || (data.replyToId is string && data.replyToId.size() <= 100)) &&
+             (data.likesCount == null || data.likesCount is number) &&
              (
                (request.auth == null && data.uid == "anonymous") ||
                (request.auth != null && data.uid == request.auth.uid)
@@ -48,10 +47,41 @@ service cloud.firestore {
              data.createdAt == request.time;
     }
 
+    // ===============================================================
+    // Collection: comments
+    // ===============================================================
+    
     match /comments/{commentId} {
       allow read: if true;
-      allow create: if isValidComment(request.resource.data);
-      allow update, delete: if false;
+      
+      allow create: if isValidComment(incoming()) && 
+                    (incoming().likesCount == null || incoming().likesCount == 0);
+      
+      allow update: if (
+        // Action: Like (Atomic Increment)
+        (
+          incoming().diff(existing()).affectedKeys().hasOnly(['likesCount']) &&
+          incoming().likesCount == existing().likesCount + 1 &&
+          isSignedIn() &&
+          existsAfter(/databases/$(database)/documents/comments/$(commentId)/likes/$(request.auth.uid))
+        ) ||
+        // Action: Unlike (Atomic Decrement)
+        (
+          incoming().diff(existing()).affectedKeys().hasOnly(['likesCount']) &&
+          incoming().likesCount == existing().likesCount - 1 &&
+          isSignedIn() &&
+          !existsAfter(/databases/$(database)/documents/comments/$(commentId)/likes/$(request.auth.uid))
+        )
+      );
+      
+      // Sub-collection: likes
+      match /likes/{userId} {
+        allow read: if true;
+        allow create: if isOwner(userId) && 
+                      incoming().uid == userId && 
+                      incoming().createdAt == request.time;
+        allow delete: if isOwner(userId);
+      }
     }
     
     match /users/{userId} {
