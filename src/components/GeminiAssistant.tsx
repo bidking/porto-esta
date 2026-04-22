@@ -31,9 +31,9 @@ export default function GeminiAssistant() {
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="dark:glass-dark bg-white border border-zinc-200 dark:border-white/5 w-[350px] h-[500px] rounded-[32px] mb-4 flex flex-col overflow-hidden shadow-2xl transition-all duration-300"
+            className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 w-[350px] max-w-[calc(100vw-2rem)] h-[500px] max-h-[70vh] rounded-[32px] mb-4 flex flex-col overflow-hidden shadow-2xl transition-all duration-300"
           >
-            <div className="p-6 border-b dark:border-white/5 border-zinc-100 flex items-center justify-between dark:bg-white/5 bg-zinc-50">
+            <div className="p-6 border-b dark:border-white/10 border-zinc-100 flex items-center justify-between dark:bg-zinc-800/50 bg-zinc-50 transition-colors duration-300">
               <div className="flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-blue-500" />
                 <span className="font-bold text-sm tracking-tight dark:text-white text-zinc-900 transition-colors duration-300">Sta AI Assistant</span>
@@ -52,11 +52,11 @@ export default function GeminiAssistant() {
               )}
               {messages.map((msg, i) => (
                 <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                  <div className={`max-w-[80%] p-4 rounded-2xl text-sm transition-colors duration-300 ${
-                    msg.role === "user" 
-                      ? "dark:bg-white dark:text-black bg-zinc-900 text-white" 
-                      : "dark:glass dark:bg-white/5 bg-zinc-100 dark:text-white/80 text-zinc-700 border dark:border-white/10 border-zinc-200"
-                  }`}>
+                      <div className={`max-w-[80%] p-4 rounded-2xl text-sm transition-colors duration-300 ${
+                        msg.role === "user" 
+                          ? "bg-zinc-900 text-white dark:bg-white dark:text-black" 
+                          : "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-white/90 border border-zinc-200 dark:border-white/10 shadow-sm"
+                      }`}>
                     <div className={`prose prose-sm transition-colors duration-300 ${msg.role === "user" ? "dark:prose-invert prose-invert" : "dark:prose-invert text-inherit"}`}>
                       <ReactMarkdown>{msg.content}</ReactMarkdown>
                     </div>

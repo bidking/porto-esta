@@ -26,7 +26,7 @@ export default function App() {
 
 function AppContent() {
   return (
-    <main className="relative min-h-screen bg-transparent selection:bg-blue-500/30 dark:selection:bg-white/20">
+    <main className="relative min-h-screen w-full overflow-x-hidden bg-transparent selection:bg-blue-500/30 dark:selection:bg-white/20">
       <Navbar />
       <GeminiAssistant />
       

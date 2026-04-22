@@ -55,7 +55,7 @@ export default function DevOpsDashboard() {
       </div>
 
       <div className="glass p-8 rounded-[40px] h-[400px] relative overflow-hidden transition-all duration-300">
-        <div className="absolute inset-0 flex items-end px-8 pb-8 gap-2">
+        <div className="absolute inset-0 flex items-end px-4 md:px-8 pb-8 gap-1 md:gap-2">
           {Array.from({ length: 24 }).map((_, i) => (
             <motion.div
               key={i}

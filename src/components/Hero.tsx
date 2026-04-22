@@ -40,7 +40,7 @@ export default function Hero() {
           DevOps & System Administrator
         </motion.span>
         
-        <h1 className="text-6xl md:text-8xl font-bold tracking-tighter mb-8 bg-clip-text text-transparent bg-gradient-to-b dark:from-white dark:to-white/40 from-zinc-900 to-zinc-600 transition-colors duration-300">
+        <h1 className="text-5xl sm:text-6xl md:text-8xl font-bold tracking-tighter mb-8 bg-clip-text text-transparent bg-gradient-to-b dark:from-white dark:to-white/40 from-zinc-900 to-zinc-600 transition-colors duration-300">
           Esta Nur Aliansyah
         </h1>
         
