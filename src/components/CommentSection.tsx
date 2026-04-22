@@ -28,6 +28,7 @@ export default function CommentSection() {
   const [gifSearch, setGifSearch] = useState("");
   const [gifResults, setGifResults] = useState<any[]>([]);
   const [isGifLoading, setIsGifLoading] = useState(false);
+  const [gifError, setGifError] = useState<string | null>(null);
   const [selectedGif, setSelectedGif] = useState<string | null>(null);
 
   useEffect(() => {
@@ -58,13 +59,17 @@ export default function CommentSection() {
 
   // Track likes for current user
   useEffect(() => {
-    if (!user || !db) return;
+    if (!db) return;
     
+    const deviceId = localStorage.getItem('deviceId') || '';
+    const likeUid = user?.uid || (deviceId ? `anon_${deviceId}` : '');
+    if (!likeUid) return;
+
     // Listen to likes subcollections for user
     const unsubscribers: (() => void)[] = [];
     
     comments.forEach(comment => {
-      const likeDoc = doc(db, "comments", comment.id, "likes", user.uid);
+      const likeDoc = doc(db, "comments", comment.id, "likes", likeUid);
       const unsub = onSnapshot(likeDoc, (doc) => {
         setUserLikes(prev => ({
           ...prev,
@@ -75,7 +80,7 @@ export default function CommentSection() {
     });
 
     return () => unsubscribers.forEach(u => u());
-  }, [user, comments.map(c => c.id).join(',')]);
+  }, [user, comments.map(c => c.id).join(','), localStorage.getItem('deviceId')]);
 
   const handleLogin = async () => {
     const provider = new GoogleAuthProvider();
@@ -89,35 +94,44 @@ export default function CommentSection() {
   const searchGifs = async () => {
     if (!gifSearch.trim()) return;
     setIsGifLoading(true);
+    setGifError(null);
     try {
-      const resp = await fetch(`https://api.giphy.com/v1/gifs/search?api_key=dc6zaTOxFJmzC&q=${encodeURIComponent(gifSearch)}&limit=12&rating=g`);
+      // Trying a more reliable public key
+      const resp = await fetch(`https://api.giphy.com/v1/gifs/search?api_key=LIV87reSOf9ouBy9fA6Yn28YkCEF0yZp&q=${encodeURIComponent(gifSearch)}&limit=12&rating=g`);
+      if (resp.status === 403 || resp.status === 401) {
+        throw new Error("GIPHY API Key issue or rate limited. Please try again later.");
+      }
       const data = await resp.json();
       setGifResults(data.data || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error("GIF search failed", error);
       setGifResults([]);
+      setGifError(error.message || "Failed to search GIFs");
     } finally {
       setIsGifLoading(false);
     }
   };
 
   const handleLike = async (commentId: string) => {
-    if (!user) {
-      handleLogin();
-      return;
-    }
-
     const isLiked = userLikes[commentId];
+    // Use a device-specific ID for anonymous likes if not logged in
+    const deviceId = localStorage.getItem('deviceId') || (() => {
+      const id = Math.random().toString(36).substring(2) + Date.now().toString(36);
+      localStorage.setItem('deviceId', id);
+      return id;
+    })();
+    
+    const likeUid = user?.uid || `anon_${deviceId}`;
     const batch = writeBatch(db);
     const commentRef = doc(db, "comments", commentId);
-    const likeRef = doc(db, "comments", commentId, "likes", user.uid);
+    const likeRef = doc(db, "comments", commentId, "likes", likeUid);
 
     if (isLiked) {
       batch.update(commentRef, { likesCount: increment(-1) });
       batch.delete(likeRef);
     } else {
       batch.update(commentRef, { likesCount: increment(1) });
-      batch.set(likeRef, { uid: user.uid, createdAt: serverTimestamp() });
+      batch.set(likeRef, { uid: likeUid, createdAt: serverTimestamp() });
     }
 
     try {
@@ -132,10 +146,18 @@ export default function CommentSection() {
     if (!newComment.trim() && !selectedGif) return;
 
     try {
+      const deviceId = localStorage.getItem('deviceId') || (() => {
+        const id = Math.random().toString(36).substring(2) + Date.now().toString(36);
+        localStorage.setItem('deviceId', id);
+        return id;
+      })();
+      
+      const commentUid = user?.uid || `anon_${deviceId}`;
+
       const commentData: any = {
         text: newComment,
         user: user?.displayName || "Anonymous",
-        uid: user?.uid || "anonymous",
+        uid: commentUid,
         createdAt: serverTimestamp(),
         likesCount: 0
       };
@@ -230,6 +252,10 @@ export default function CommentSection() {
                     <div className="col-span-full py-10 flex flex-col items-center justify-center gap-2">
                       <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
                       <span className="text-xs dark:text-white/40 text-zinc-400">Searching GIPHY...</span>
+                    </div>
+                  ) : gifError ? (
+                    <div className="col-span-full py-10 text-center">
+                      <span className="text-xs text-red-500">{gifError}</span>
                     </div>
                   ) : gifResults.length > 0 ? (
                     gifResults.map(gif => (

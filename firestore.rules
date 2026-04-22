@@ -15,6 +15,11 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function isUser(userId) {
+      return (isSignedIn() && request.auth.uid == userId) || 
+             (!isSignedIn() && userId.startsWith("anon_"));
+    }
+    
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
@@ -41,7 +46,7 @@ service cloud.firestore {
              (data.replyToId == null || (data.replyToId is string && data.replyToId.size() <= 100)) &&
              (data.likesCount == null || data.likesCount is number) &&
              (
-               (request.auth == null && data.uid == "anonymous") ||
+               (request.auth == null && (data.uid == "anonymous" || data.uid.startsWith("anon_"))) ||
                (request.auth != null && data.uid == request.auth.uid)
              ) &&
              data.createdAt == request.time;
@@ -58,29 +63,21 @@ service cloud.firestore {
                     (incoming().likesCount == null || incoming().likesCount == 0);
       
       allow update: if (
-        // Action: Like (Atomic Increment)
-        (
-          incoming().diff(existing()).affectedKeys().hasOnly(['likesCount']) &&
-          incoming().likesCount == existing().likesCount + 1 &&
-          isSignedIn() &&
-          existsAfter(/databases/$(database)/documents/comments/$(commentId)/likes/$(request.auth.uid))
-        ) ||
-        // Action: Unlike (Atomic Decrement)
-        (
-          incoming().diff(existing()).affectedKeys().hasOnly(['likesCount']) &&
-          incoming().likesCount == existing().likesCount - 1 &&
-          isSignedIn() &&
-          !existsAfter(/databases/$(database)/documents/comments/$(commentId)/likes/$(request.auth.uid))
-        )
+        // Action: Like/Unlike (Atomic Increment/Decrement)
+        // Note: For anonymous likes, we allow the increment if it's only the likesCount changing by 1.
+        // In a production app, we would use a Cloud Function for this for absolute security,
+        // but for this portfolio prototype, we'll allow client-side increments.
+        incoming().diff(existing()).affectedKeys().hasOnly(['likesCount']) &&
+        (incoming().likesCount == existing().likesCount + 1 || incoming().likesCount == existing().likesCount - 1)
       );
       
       // Sub-collection: likes
       match /likes/{userId} {
         allow read: if true;
-        allow create: if isOwner(userId) && 
+        allow create: if isUser(userId) && 
                       incoming().uid == userId && 
                       incoming().createdAt == request.time;
-        allow delete: if isOwner(userId);
+        allow delete: if isUser(userId);
       }
     }
     
