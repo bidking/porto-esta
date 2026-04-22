@@ -266,8 +266,9 @@ export default function CommentSection() {
         </div>
 
         {/* Right Column: User Comments */}
-        <div className="lg:col-span-7 space-y-6">
-          <AnimatePresence initial={false}>
+        <div className="lg:col-span-7 h-[600px] overflow-y-auto pr-6 custom-scrollbar rounded-3xl">
+          <div className="space-y-6 pb-6">
+            <AnimatePresence initial={false}>
             {parentComments.length === 0 ? (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="glass p-12 rounded-[40px] text-center">
                 <p className="dark:text-white/30 text-zinc-400 italic">No feedback yet. Be the first to start the loop!</p>
@@ -299,6 +300,7 @@ export default function CommentSection() {
               ))
             )}
           </AnimatePresence>
+          </div>
         </div>
       </div>
     </Section>
