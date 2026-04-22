@@ -36,7 +36,7 @@ export default function GeminiAssistant() {
             <div className="p-6 border-b dark:border-white/10 border-zinc-100 flex items-center justify-between dark:bg-zinc-800/50 bg-zinc-50 transition-colors duration-300">
               <div className="flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-blue-500" />
-                <span className="font-bold text-sm tracking-tight dark:text-white text-zinc-900 transition-colors duration-300">Sta AI Assistant</span>
+                <span className="font-bold text-sm tracking-tight dark:text-white text-zinc-900 transition-colors duration-300">Astro AI Assistant</span>
               </div>
               <button onClick={() => setIsOpen(false)} className="p-1 dark:hover:bg-white/10 hover:bg-black/5 rounded-full transition-colors">
                 <X className="w-5 h-5 dark:text-white/40 text-zinc-400" />
@@ -83,7 +83,7 @@ export default function GeminiAssistant() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                  placeholder="Ask Sta AI..."
+                  placeholder="Ask Astro AI..."
                   className="w-full dark:bg-white/5 bg-zinc-100 border dark:border-white/10 border-zinc-200 rounded-2xl px-4 py-3 text-sm dark:text-white text-zinc-900 focus:outline-none dark:focus:border-white/30 focus:border-zinc-400 transition-colors pr-10"
                 />
                 <button 

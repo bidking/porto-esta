@@ -13,9 +13,17 @@ export default function Contact() {
         
         <div className="flex justify-center gap-6 mb-16">
           {[
-            { icon: Github, href: "#", label: "GitHub" },
-            { icon: Linkedin, href: "#", label: "LinkedIn" },
-            { icon: Instagram, href: "#", label: "Instagram" },
+            { icon: Github, href: "https://github.com/bidking", label: "GitHub" },
+            { 
+              icon: Linkedin, 
+              href: "https://www.linkedin.com/in/esta-nur-aliansyah-5b6647307?utm_source=share_via&utm_content=profile&utm_medium=member_android", 
+              label: "LinkedIn" 
+            },
+            { 
+              icon: Instagram, 
+              href: "https://www.instagram.com/astrolynx._?igsh=MXR0bWhqZGpvejRsYQ==", 
+              label: "Instagram" 
+            },
             { icon: Mail, href: "mailto:estaaliansyah@gmail.com", label: "Email" },
           ].map((social, i) => (
             <motion.a
