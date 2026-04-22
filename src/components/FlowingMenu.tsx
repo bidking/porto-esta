@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
 import { gsap } from 'gsap';
+import { useTheme } from '../lib/ThemeContext';
 
 import './FlowingMenu.css';
 
@@ -17,20 +18,18 @@ interface MenuItemProps {
 function FlowingMenu({
   items = [],
   speed = 15,
-  textColor = '#fff',
-  bgColor = '#120F17',
-  marqueeBgColor = '#fff',
-  marqueeTextColor = '#120F17',
-  borderColor = '#fff'
 }: {
   items?: { link: string; text: string; image: string }[];
   speed?: number;
-  textColor?: string;
-  bgColor?: string;
-  marqueeBgColor?: string;
-  marqueeTextColor?: string;
-  borderColor?: string;
 }) {
+  const { theme } = useTheme();
+
+  const textColor = theme === 'dark' ? '#fff' : '#18181b';
+  const marqueeBgColor = theme === 'dark' ? '#fff' : '#18181b';
+  const marqueeTextColor = theme === 'dark' ? '#000' : '#fff';
+  const borderColor = theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+  const bgColor = 'transparent';
+
   return (
     <div className="menu-wrap" style={{ backgroundColor: bgColor }}>
       <nav className="menu">
@@ -79,6 +78,7 @@ function MenuItem({ link, text, image, speed, textColor, marqueeBgColor, marquee
       if (!marqueeContent) return;
 
       const contentWidth = marqueeContent.offsetWidth;
+      if (contentWidth <= 0) return;
       const viewportWidth = window.innerWidth;
 
       const needed = Math.ceil(viewportWidth / contentWidth) + 2;

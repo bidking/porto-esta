@@ -18,7 +18,6 @@ import { ThemeProvider } from "./lib/ThemeContext";
 import GradualBlur from "./components/ui/GradualBlur";
 
 import FlowingMenu from "./components/FlowingMenu";
-import { useTheme } from "./lib/ThemeContext";
 
 export default function App() {
   return (
@@ -29,7 +28,6 @@ export default function App() {
 }
 
 function AppContent() {
-  const { theme } = useTheme();
   return (
     <main className="relative min-h-screen w-full overflow-x-hidden bg-transparent selection:bg-blue-500/30 dark:selection:bg-white/20">
       <Navbar />
@@ -53,7 +51,7 @@ function AppContent() {
         <About />
         <CareerTimeline />
         <Projects />
-        <div className="h-[500px] relative dark:bg-black bg-white transition-colors duration-300">
+        <div className="h-[400px] md:h-[600px] relative dark:bg-black bg-white transition-colors duration-300">
            <FlowingMenu 
              items={[
                { link: '#', text: 'Infrastructure as Code', image: 'https://images.unsplash.com/photo-1667372393119-3d4c48d07fc9?w=800&q=80' },
@@ -61,11 +59,6 @@ function AppContent() {
                { link: '#', text: 'CI/CD Pipelines', image: 'https://images.unsplash.com/photo-1618401471353-b98aadebc255?w=800&q=80' },
                { link: '#', text: 'Network Security', image: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc51?w=800&q=80' }
              ]} 
-             bgColor="transparent"
-             textColor={theme === 'dark' ? '#fff' : '#18181b'}
-             marqueeBgColor={theme === 'dark' ? '#fff' : '#18181b'}
-             marqueeTextColor={theme === 'dark' ? '#000' : '#fff'}
-             borderColor={theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}
            />
         </div>
         <div className="py-20 dark:bg-zinc-950/50 bg-zinc-200/50 transition-colors duration-300">

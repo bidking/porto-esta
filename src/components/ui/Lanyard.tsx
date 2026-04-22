@@ -64,6 +64,7 @@ export default function Lanyard({ position = [0, 0, 15], gravity = [0, -40, 0], 
             onCreated={({ gl }) => {
               gl.setClearColor(new THREE.Color(0x000000), transparent ? 0 : 1);
             }}
+            onError={(e) => console.error("Canvas Error:", e)}
           >
             <ambientLight intensity={Math.PI * 0.5} />
             <Physics gravity={gravity as any} timeStep={1 / 30}>
@@ -106,27 +107,39 @@ function Band({ maxSpeed = 30, minSpeed = 0, isMobile = false, cardGLB, lanyardI
   const [dragged, drag] = useState<any>(false);
   const [hovered, hover] = useState(false);
 
-  // CardContent logic
+  // CardContent logic with safety fallback
   const CardContent = useMemo(() => {
-    if (nodes.card && nodes.clip && nodes.clamp) {
+    // If nodes or node parts are missing, provide a clean box fallback
+    if (!nodes || !nodes.card || !nodes.clip || !nodes.clamp) {
       return (
-        <>
-          <mesh geometry={nodes.card.geometry}>
-            <meshPhysicalMaterial
-              map={materials.base.map}
-              map-anisotropy={16}
-              clearcoat={isMobile ? 0 : 1}
-              clearcoatRoughness={0.15}
-              roughness={0.9}
-              metalness={0.8}
-            />
-          </mesh>
-          <mesh geometry={nodes.clip.geometry} material={materials.metal} material-roughness={0.3} />
-          <mesh geometry={nodes.clamp.geometry} material={materials.metal} />
-        </>
+        <mesh>
+          <boxGeometry args={[0.7, 1, 0.02]} />
+          <meshPhysicalMaterial 
+             color="#222" 
+             metalness={0.8} 
+             roughness={0.2} 
+             clearcoat={1}
+          />
+        </mesh>
       );
     }
-    return <primitive object={nodes.scene || nodes.root || Object.values(nodes)[0]} />;
+    
+    return (
+      <>
+        <mesh geometry={nodes.card.geometry}>
+          <meshPhysicalMaterial
+            map={materials.base.map}
+            map-anisotropy={16}
+            clearcoat={isMobile ? 0 : 1}
+            clearcoatRoughness={0.15}
+            roughness={0.9}
+            metalness={0.8}
+          />
+        </mesh>
+        <mesh geometry={nodes.clip.geometry} material={materials.metal} material-roughness={0.3} />
+        <mesh geometry={nodes.clamp.geometry} material={materials.metal} />
+      </>
+    );
   }, [nodes, materials, isMobile]);
 
   useRopeJoint(fixed, j1, [[0, 0, 0], [0, 0, 0], 1.2]);
