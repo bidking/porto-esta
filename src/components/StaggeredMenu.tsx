@@ -44,7 +44,7 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
   logoUrl,
   menuButtonColor = '#fff',
   openMenuButtonColor = '#fff',
-  accentColor = '#5227FF',
+  accentColor = '#A855F7',
   changeMenuColorOnOpen = true,
   isFixed = false,
   closeOnClickAway = true,
@@ -425,7 +425,7 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
               />
             ) : (
               <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center font-bold text-white">S</div>
+                  <div className="w-8 h-8 rounded-lg bg-purple-500 flex items-center justify-center font-bold text-white">S</div>
                   <span className="font-bold text-lg tracking-tight dark:text-white text-zinc-900">Astro</span>
               </div>
             )}

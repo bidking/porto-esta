@@ -41,7 +41,7 @@ export default function CareerTimeline() {
             <div className="glass p-8 rounded-3xl interactive transition-all duration-300">
               <span className="text-xs font-mono dark:text-white/40 text-zinc-500 mb-2 block transition-colors duration-300">{item.year}</span>
               <h3 className="text-xl font-bold mb-1 dark:text-white text-zinc-900 transition-colors duration-300">{item.role}</h3>
-              <div className="text-blue-500 dark:text-blue-400 text-sm font-medium mb-4 transition-colors duration-300">{item.company}</div>
+              <div className="text-purple-500 dark:text-purple-400 text-sm font-medium mb-4 transition-colors duration-300">{item.company}</div>
               <p className="text-sm dark:text-white/60 text-zinc-600 leading-relaxed transition-colors duration-300">
                 {item.description}
               </p>

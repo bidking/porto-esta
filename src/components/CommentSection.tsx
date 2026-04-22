@@ -199,10 +199,9 @@ export default function CommentSection() {
                     placeholder={user ? `What's on your mind, ${user.displayName}?` : "Type your message here... (Anonymous)"}
                     className="w-full h-40 dark:bg-white/5 bg-zinc-50 dark:text-white text-zinc-900 border dark:border-white/10 border-zinc-200 rounded-2xl px-6 py-4 focus:outline-none dark:focus:border-white/30 focus:border-zinc-400 dark:shadow-none shadow-inner transition-all duration-300 resize-none"
                   />
-                  
-                  {selectedGif && (
+                                    {selectedGif && (
                     <div className="absolute left-4 bottom-4 group">
-                      <img src={selectedGif} className="h-16 rounded-lg border-2 border-blue-500 shadow-lg" alt="Selected GIF" referrerPolicy="no-referrer" />
+                      <img src={selectedGif} className="h-16 rounded-lg border-2 border-purple-500 shadow-lg" alt="Selected GIF" referrerPolicy="no-referrer" />
                       <button type="button" onClick={() => setSelectedGif(null)} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                         <X className="w-3 h-3" />
                       </button>
@@ -210,7 +209,7 @@ export default function CommentSection() {
                   )}
 
                   <div className="absolute right-4 bottom-4 flex gap-2">
-                    <button type="button" onClick={() => setIsGifPickerOpen(!isGifPickerOpen)} className={`p-3 rounded-xl transition-all ${isGifPickerOpen ? 'dark:bg-blue-500/20 bg-blue-50 text-blue-500' : 'dark:bg-white/5 bg-black/5 dark:text-white/40 text-zinc-400 hover:dark:bg-white/10 hover:bg-black/10'}`}>
+                    <button type="button" onClick={() => setIsGifPickerOpen(!isGifPickerOpen)} className={`p-3 rounded-xl transition-all ${isGifPickerOpen ? 'dark:bg-purple-500/20 bg-purple-50 text-purple-500' : 'dark:bg-white/5 bg-black/5 dark:text-white/40 text-zinc-400 hover:dark:bg-white/10 hover:bg-black/10'}`}>
                       <ImageIcon className="w-5 h-5" />
                     </button>
                     <button type="submit" disabled={!newComment.trim() && !selectedGif} className="p-3 dark:bg-white dark:text-black bg-zinc-900 text-white rounded-xl interactive transition-all disabled:opacity-50">
@@ -225,15 +224,15 @@ export default function CommentSection() {
                   <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
                     <div className="flex gap-2 mb-4">
                       <div className="relative flex-1">
-                        <input type="text" value={gifSearch} onChange={(e) => setGifSearch(e.target.value)} onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), searchGifs())} placeholder="Search GIPHY..." className="w-full pl-10 pr-4 py-2 text-sm dark:bg-white/5 bg-zinc-50 border dark:border-white/10 border-zinc-200 rounded-xl focus:outline-none focus:border-blue-500 transition-all" />
+                        <input type="text" value={gifSearch} onChange={(e) => setGifSearch(e.target.value)} onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), searchGifs())} placeholder="Search GIPHY..." className="w-full pl-10 pr-4 py-2 text-sm dark:bg-white/5 bg-zinc-50 border dark:border-white/10 border-zinc-200 rounded-xl focus:outline-none focus:border-purple-500 transition-all" />
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 dark:text-white/30 text-zinc-400" />
                       </div>
-                      <button type="button" onClick={searchGifs} className="px-4 py-2 bg-blue-500 text-white text-sm font-medium rounded-xl hover:bg-blue-600 transition-colors text-xs whitespace-nowrap">Search</button>
+                      <button type="button" onClick={searchGifs} className="px-4 py-2 bg-purple-500 text-white text-sm font-medium rounded-xl hover:bg-purple-600 transition-colors text-xs whitespace-nowrap">Search</button>
                     </div>
                     <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar min-h-[100px]">
                       {isGifLoading ? (
                         <div className="col-span-full py-10 flex flex-col items-center justify-center gap-2">
-                          <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                          <div className="w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
                           <span className="text-xs dark:text-white/40 text-zinc-400">Searching GIPHY...</span>
                         </div>
                       ) : gifError ? (
@@ -242,7 +241,7 @@ export default function CommentSection() {
                         </div>
                       ) : gifResults.length > 0 ? (
                         gifResults.map(gif => (
-                          <button key={gif.id} type="button" onClick={() => { setSelectedGif(gif.images.fixed_height.url); setIsGifPickerOpen(false); }} className="aspect-video rounded-lg overflow-hidden border-2 border-transparent hover:border-blue-500 transition-all group">
+                          <button key={gif.id} type="button" onClick={() => { setSelectedGif(gif.images.fixed_height.url); setIsGifPickerOpen(false); }} className="aspect-video rounded-lg overflow-hidden border-2 border-transparent hover:border-purple-500 transition-all group">
                             <img src={gif.images.fixed_height.url} alt="GIF" referrerPolicy="no-referrer" className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
                           </button>
                         ))
@@ -259,7 +258,7 @@ export default function CommentSection() {
               {!user && (
                 <div className="flex items-center justify-between pt-4 border-t dark:border-white/5 border-zinc-100">
                   <span className="text-xs dark:text-white/30 text-zinc-400">Posting as Anonymous</span>
-                  <button type="button" onClick={handleLogin} className="text-xs font-medium text-blue-500 hover:text-blue-400 transition-colors">Sign in with Google</button>
+                  <button type="button" onClick={handleLogin} className="text-xs font-medium text-purple-500 hover:text-purple-400 transition-colors">Sign in with Google</button>
                 </div>
               )}
             </form>

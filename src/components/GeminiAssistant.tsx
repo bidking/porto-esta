@@ -35,7 +35,7 @@ export default function GeminiAssistant() {
           >
             <div className="p-6 border-b dark:border-white/10 border-zinc-100 flex items-center justify-between dark:bg-zinc-800/50 bg-zinc-50 transition-colors duration-300">
               <div className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-blue-500" />
+                <Sparkles className="w-5 h-5 text-purple-500" />
                 <span className="font-bold text-sm tracking-tight dark:text-white text-zinc-900 transition-colors duration-300">Astro AI Assistant</span>
               </div>
               <button onClick={() => setIsOpen(false)} className="p-1 dark:hover:bg-white/10 hover:bg-black/5 rounded-full transition-colors">
@@ -54,10 +54,10 @@ export default function GeminiAssistant() {
                 <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                       <div className={`max-w-[80%] p-4 rounded-2xl text-sm transition-colors duration-300 ${
                         msg.role === "user" 
-                          ? "bg-zinc-900 text-white dark:bg-white dark:text-black" 
+                          ? "bg-purple-600 text-white dark:bg-purple-500 dark:text-white" 
                           : "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-white/90 border border-zinc-200 dark:border-white/10 shadow-sm"
                       }`}>
-                    <div className={`prose prose-sm transition-colors duration-300 ${msg.role === "user" ? "dark:prose-invert prose-invert" : "dark:prose-invert text-inherit"}`}>
+                    <div className={`prose prose-sm transition-colors duration-300 ${msg.role === "user" ? "prose-invert" : "dark:prose-invert text-inherit"}`}>
                       <ReactMarkdown>{msg.content}</ReactMarkdown>
                     </div>
                   </div>
@@ -65,11 +65,11 @@ export default function GeminiAssistant() {
               ))}
               {isLoading && (
                 <div className="flex justify-start">
-                  <div className="dark:glass bg-zinc-100 border dark:border-white/10 border-zinc-200 p-4 rounded-2xl">
+                  <div className="dark:bg-purple-500/10 bg-purple-50 border dark:border-purple-500/20 border-purple-100 p-4 rounded-2xl">
                     <div className="flex gap-1">
-                      <div className="w-1.5 h-1.5 dark:bg-white/40 bg-zinc-400 rounded-full animate-bounce" />
-                      <div className="w-1.5 h-1.5 dark:bg-white/40 bg-zinc-400 rounded-full animate-bounce [animation-delay:0.2s]" />
-                      <div className="w-1.5 h-1.5 dark:bg-white/40 bg-zinc-400 rounded-full animate-bounce [animation-delay:0.4s]" />
+                      <div className="w-1.5 h-1.5 bg-purple-500/60 rounded-full animate-bounce" />
+                      <div className="w-1.5 h-1.5 bg-purple-500/60 rounded-full animate-bounce [animation-delay:0.2s]" />
+                      <div className="w-1.5 h-1.5 bg-purple-500/60 rounded-full animate-bounce [animation-delay:0.4s]" />
                     </div>
                   </div>
                 </div>
@@ -106,9 +106,9 @@ export default function GeminiAssistant() {
             exit={{ opacity: 0, x: 20 }}
             className="absolute bottom-20 right-0 mb-4 mr-2"
           >
-            <div className="bg-blue-500 text-white px-4 py-2 rounded-2xl rounded-br-none text-xs font-bold shadow-lg whitespace-nowrap animate-float relative">
+            <div className="bg-purple-600 text-white px-4 py-2 rounded-2xl rounded-br-none text-xs font-bold shadow-lg whitespace-nowrap animate-float relative">
               Ask Astro! ✨
-              <div className="absolute top-full right-0 w-2 h-2 bg-blue-500 [clip-path:polygon(100%_0,0_0,100%_100%)]" />
+              <div className="absolute top-full right-0 w-2 h-2 bg-purple-600 [clip-path:polygon(100%_0,0_0,100%_100%)]" />
             </div>
           </motion.div>
         )}
@@ -123,14 +123,14 @@ export default function GeminiAssistant() {
           whileTap={{ scale: 0.9 }}
           onClick={() => setIsOpen(!isOpen)}
           className={`w-16 h-16 rounded-full glass flex items-center justify-center shadow-xl interactive relative overflow-hidden ${
-            !isOpen ? 'border-blue-500/50' : ''
+            !isOpen ? 'border-purple-500/50' : 'border-purple-500/20'
           }`}
         >
-          {isOpen ? <X className="w-6 h-6" /> : <MessageSquare className="w-6 h-6 text-blue-500 dark:text-blue-400" />}
+          {isOpen ? <X className="w-6 h-6" /> : <MessageSquare className="w-6 h-6 text-purple-600 dark:text-purple-400" />}
           
           {/* Animated background subtle glow */}
           {!isOpen && (
-            <div className="absolute inset-0 bg-blue-500/5 dark:bg-blue-400/5 animate-pulse" />
+            <div className="absolute inset-0 bg-purple-500/10 dark:bg-purple-400/10 animate-pulse" />
           )}
         </motion.button>
       </div>

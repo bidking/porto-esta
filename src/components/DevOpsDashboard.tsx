@@ -32,10 +32,10 @@ export default function DevOpsDashboard() {
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         {[
-          { label: "CPU Usage", value: `${metrics.cpu}%`, icon: Cpu, color: "text-blue-500 dark:text-blue-400" },
-          { label: "RAM Usage", value: `${metrics.ram}%`, icon: Activity, color: "text-purple-500 dark:text-purple-400" },
-          { label: "Uptime", value: metrics.uptime, icon: Zap, color: "text-green-500 dark:text-green-400" },
-          { label: "Active Req", value: metrics.requests, icon: HardDrive, color: "text-orange-500 dark:text-orange-400" },
+          { label: "CPU Usage", value: `${metrics.cpu}%`, icon: Cpu, color: "text-purple-500 dark:text-purple-400" },
+          { label: "RAM Usage", value: `${metrics.ram}%`, icon: Activity, color: "text-purple-600 dark:text-purple-500" },
+          { label: "Uptime", value: metrics.uptime, icon: Zap, color: "text-emerald-500 dark:text-emerald-400" },
+          { label: "Active Req", value: metrics.requests, icon: HardDrive, color: "text-violet-500 dark:text-violet-400" },
         ].map((item, i) => (
           <motion.div
             key={item.label}
@@ -59,7 +59,7 @@ export default function DevOpsDashboard() {
           {Array.from({ length: 24 }).map((_, i) => (
             <motion.div
               key={i}
-              className="flex-1 bg-gradient-to-t from-blue-500/40 to-purple-500/40 rounded-t-lg"
+              className="flex-1 bg-gradient-to-t from-purple-500/40 to-violet-500/40 rounded-t-lg"
               initial={{ height: "20%" }}
               animate={{ height: `${Math.random() * 60 + 20}%` }}
               transition={{ 

@@ -1,41 +1,39 @@
 .card-swap-container {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  transform: translate(5%, 20%);
-  transform-origin: bottom right;
-
-  perspective: 900px;
-  overflow: visible;
+  position: relative;
+  margin: 0 auto;
+  perspective: 3000px; /* Stronger perspective for bigger cards */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
 }
 
 .card {
   position: absolute;
   top: 50%;
   left: 50%;
-  border-radius: 20px; /* Adjusted to match iOS aesthetics */
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(24, 24, 27, 0.8); /* zinc-900 with alpha */
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: #0c0c0e;
+  overflow: hidden;
 
   transform-style: preserve-3d;
   will-change: transform;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 50px 150px -30px rgba(0, 0, 0, 0.9);
+  pointer-events: auto;
+}
+
+@media (max-width: 1024px) {
+  .card-swap-container {
+     transform: scale(0.95);
+  }
 }
 
 @media (max-width: 768px) {
   .card-swap-container {
-    transform: scale(0.7) translate(25%, 25%);
-    bottom: 5%;
-  }
-}
-
-@media (max-width: 480px) {
-  .card-swap-container {
-    transform: scale(0.5) translate(20%, 20%);
-    bottom: 0%;
+    transform: scale(1); /* No scale down on mobile, rely on logic */
   }
 }

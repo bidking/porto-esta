@@ -31,7 +31,7 @@ export default function App() {
 function AppContent() {
   const { theme } = useTheme();
   return (
-    <main className="relative min-h-screen w-full overflow-x-hidden bg-transparent selection:bg-blue-500/30 dark:selection:bg-white/20">
+    <main className="relative min-h-screen w-full overflow-x-hidden bg-transparent selection:bg-purple-500/30 dark:selection:bg-white/20">
       <Navbar />
       <GeminiAssistant />
 
@@ -83,7 +83,7 @@ function AppContent() {
       
       {/* Background elements */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] dark:bg-blue-500/10 bg-blue-500/5 blur-[120px] rounded-full" />
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] dark:bg-purple-600/10 bg-purple-600/5 blur-[120px] rounded-full" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] dark:bg-purple-500/10 bg-purple-500/5 blur-[120px] rounded-full" />
       </div>
       

@@ -10,7 +10,7 @@ Card.displayName = 'Card';
 const makeSlot = (i, distX, distY, total) => ({
   x: i * distX,
   y: -i * distY,
-  z: -i * distX * 1.5,
+  z: -i * distX * 2,
   zIndex: total - i
 });
 
@@ -69,7 +69,11 @@ const CardSwap = ({
 
   const tlRef = useRef(null);
   const intervalRef = useRef();
+  const pauseTimeoutRef = useRef(null);
   const container = useRef(null);
+  const isPausedByClick = useRef(false);
+
+  const swapRef = useRef(null);
 
   useEffect(() => {
     const total = refs.length;
@@ -80,7 +84,7 @@ const CardSwap = ({
     });
 
     const swap = () => {
-      if (order.current.length < 2) return;
+      if (order.current.length < 2 || isPausedByClick.current) return;
 
       const [front, ...rest] = order.current;
       const elFront = refs[front].current;
@@ -140,48 +144,101 @@ const CardSwap = ({
       });
     };
 
+    swapRef.current = swap;
+
     // Delay first swap slightly to avoid jumping on load
     const timeout = setTimeout(() => {
         intervalRef.current = window.setInterval(swap, delay);
     }, 100);
 
-    if (pauseOnHover) {
-      const node = container.current;
-      if (node) {
-        const pause = () => {
-          tlRef.current?.pause();
-          clearInterval(intervalRef.current);
-        };
-        const resume = () => {
-          tlRef.current?.play();
-          intervalRef.current = window.setInterval(swap, delay);
-        };
-        node.addEventListener('mouseenter', pause);
-        node.addEventListener('mouseleave', resume);
-        return () => {
-          node.removeEventListener('mouseenter', pause);
-          node.removeEventListener('mouseleave', resume);
-          clearTimeout(timeout);
-          clearInterval(intervalRef.current);
-        };
-      }
+    const node = container.current;
+    const pause = () => {
+      tlRef.current?.pause();
+      clearInterval(intervalRef.current);
+    };
+    const resume = () => {
+      if (isPausedByClick.current) return;
+      tlRef.current?.play();
+      clearInterval(intervalRef.current);
+      intervalRef.current = window.setInterval(swap, delay);
+    };
+
+    if (node && pauseOnHover) {
+      node.addEventListener('mouseenter', pause);
+      node.addEventListener('mouseleave', resume);
     }
+
     return () => {
+        if (node && pauseOnHover) {
+            node.removeEventListener('mouseenter', pause);
+            node.removeEventListener('mouseleave', resume);
+        }
         clearTimeout(timeout);
         clearInterval(intervalRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cardDistance, verticalDistance, delay, pauseOnHover, skewAmount, easing]);
 
+  const handleManualClick = (i) => {
+    const pos = order.current.indexOf(i);
+    if (pos === -1) return;
+
+    // If a background card is clicked, bring it to the front
+    if (pos > 0) {
+      // Cycle the order array so the clicked card (at index i) becomes the first element [0]
+      const newOrder = [...order.current.slice(pos), ...order.current.slice(0, pos)];
+      order.current = newOrder;
+      
+      // Animate all cards to their new positions based on the updated order
+      const total = refs.length;
+      refs.forEach((ref, cardIndex) => {
+        if (!ref.current) return;
+        const newPosInStack = order.current.indexOf(cardIndex);
+        const slot = makeSlot(newPosInStack, cardDistance, verticalDistance, total);
+        
+        gsap.to(ref.current, {
+          x: slot.x,
+          y: slot.y,
+          z: slot.z,
+          zIndex: slot.zIndex,
+          duration: config.durMove,
+          ease: config.ease,
+          overwrite: true
+        });
+      });
+    }
+
+    // Pause for 5 seconds if clicked
+    isPausedByClick.current = true;
+    tlRef.current?.pause();
+    clearInterval(intervalRef.current);
+    if (pauseTimeoutRef.current) clearTimeout(pauseTimeoutRef.current);
+    
+    onCardClick?.(i);
+    
+    pauseTimeoutRef.current = setTimeout(() => {
+      isPausedByClick.current = false;
+      tlRef.current?.play();
+      
+      clearInterval(intervalRef.current);
+      intervalRef.current = window.setInterval(swapRef.current, delay);
+      pauseTimeoutRef.current = null;
+    }, 5000); 
+  };
+
   const rendered = childArr.map((child, i) =>
     isValidElement(child)
       ? cloneElement(child, {
           key: i,
           ref: refs[i],
-          style: { width, height, ...(child.props.style ?? {}) },
+          style: { width, height, cursor: 'pointer', ...(child.props.style ?? {}) },
           onClick: e => {
+            // If it's an interactive element, we still want to pause but maybe not reorder
+            // unless the user actually clicked the card body.
+            // However, bringing to front is usually helpful.
+            
             child.props.onClick?.(e);
-            onCardClick?.(i);
+            handleManualClick(i);
           }
         })
       : child
