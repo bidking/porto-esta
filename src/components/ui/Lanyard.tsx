@@ -9,9 +9,9 @@ import './Lanyard.css';
 
 extend({ MeshLineGeometry, MeshLineMaterial });
 
-// Asset configuration - Remote sources are more reliable for this environment
-const REMOTE_CARD = 'https://raw.githubusercontent.com/DavidHDev/react-bits/master/src/assets/lanyard/card.glb';
-const REMOTE_LANYARD = 'https://raw.githubusercontent.com/DavidHDev/react-bits/master/src/assets/lanyard/lanyard.png';
+// Asset configuration - Using local assets as requested
+const cardGLBPath = '/assets/card.glb';
+const lanyardPath = '/assets/lanyard.png';
 
 export default function Lanyard({ position = [0, 0, 15], gravity = [0, -40, 0], fov = 20, transparent = true }: {
   position?: [number, number, number];
@@ -63,7 +63,7 @@ export default function Lanyard({ position = [0, 0, 15], gravity = [0, -40, 0], 
           >
             <ambientLight intensity={Math.PI * 0.5} />
             <Physics gravity={gravity as any} timeStep={1 / 30}>
-              <Band isMobile={isMobile} cardGLB={REMOTE_CARD} lanyardImg={REMOTE_LANYARD} />
+              <Band isMobile={isMobile} cardGLB={cardGLBPath} lanyardImg={lanyardPath} />
             </Physics>
             <Environment blur={1}>
               <Lightformer intensity={2} color="white" position={[0, -1, 5]} rotation={[0, 0, Math.PI / 3]} scale={[100, 0.1, 1]} />
