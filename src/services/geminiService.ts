@@ -30,7 +30,7 @@ export async function askGemini(prompt: string) {
   try {
     const ai = getAiInstance();
     const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash",
+      model: "gemini-3-flash-preview",
       contents: prompt,
       config: {
         systemInstruction,
@@ -38,9 +38,12 @@ export async function askGemini(prompt: string) {
     });
     return response.text;
   } catch (error) {
-    console.error("Gemini API Error:", error);
-    if (error instanceof Error && error.message.includes("API Key")) {
-      return "Maaf, API Key Gemini belum dikonfigurasi. Silakan tambahkan `GEMINI_API_KEY` di menu Secrets AI Studio.";
+    console.error("Gemini API Error details:", error);
+    if (error instanceof Error) {
+      if (error.message.includes("API Key")) {
+        return "Maaf, API Key Gemini belum dikonfigurasi. Silakan tambahkan `GEMINI_API_KEY` di menu Secrets AI Studio.";
+      }
+      return `Gemini Error: ${error.message}`;
     }
     return "I'm sorry, I'm having trouble connecting to my brain right now. Please try again later.";
   }
