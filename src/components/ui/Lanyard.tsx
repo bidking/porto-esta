@@ -9,19 +9,11 @@ import './Lanyard.css';
 
 extend({ MeshLineGeometry, MeshLineMaterial });
 
-// Asset configuration
+// Asset configuration - Remote sources are more reliable for this environment
 const REMOTE_CARD = 'https://raw.githubusercontent.com/DavidHDev/react-bits/master/src/assets/lanyard/card.glb';
 const REMOTE_LANYARD = 'https://raw.githubusercontent.com/DavidHDev/react-bits/master/src/assets/lanyard/lanyard.png';
 
-// Use remote assets to ensure they load correctly
-const cardGLBPath = REMOTE_CARD;
-const lanyardPath = REMOTE_LANYARD;
-
-// Preload assets for faster spawning
-useGLTF.preload(cardGLBPath);
-useTexture.preload(lanyardPath);
-
-export default function Lanyard({ position = [0, 0, 30], gravity = [0, -40, 0], fov = 20, transparent = true }: {
+export default function Lanyard({ position = [0, 0, 15], gravity = [0, -40, 0], fov = 20, transparent = true }: {
   position?: [number, number, number];
   gravity?: [number, number, number];
   fov?: number;
@@ -37,7 +29,7 @@ export default function Lanyard({ position = [0, 0, 30], gravity = [0, -40, 0], 
 
     const observer = new IntersectionObserver(
       ([entry]) => setIsVisible(entry.isIntersecting),
-      { threshold: 0.01 } // Trigger even with tiny sliver visible
+      { threshold: 0.05 }
     );
     
     if (containerRef.current) {
@@ -51,10 +43,11 @@ export default function Lanyard({ position = [0, 0, 30], gravity = [0, -40, 0], 
   }, []);
 
   return (
-    <div ref={containerRef} className="lanyard-wrapper">
-      <Suspense fallback={<div className="w-full h-full bg-white/5 animate-pulse rounded-2xl" />}>
-        {/* Keep Canvas mounted but hide with CSS when not visible to save GPU without re-mounting */}
-        <div style={{ visibility: isVisible ? 'visible' : 'hidden', width: '100%', height: '100%' }}>
+    <div ref={containerRef} className="lanyard-wrapper h-full w-full">
+      <Suspense fallback={<div className="w-full h-full glass animate-pulse rounded-3xl flex items-center justify-center">
+        <span className="text-xs font-mono opacity-20">BOOTING_CORE_ENGINE...</span>
+      </div>}>
+        {isVisible && (
           <Canvas
             camera={{ position: position as any, fov: fov }}
             dpr={[1, 1.2]}
@@ -69,34 +62,36 @@ export default function Lanyard({ position = [0, 0, 30], gravity = [0, -40, 0], 
             }}
           >
             <ambientLight intensity={Math.PI * 0.5} />
-            <Physics gravity={gravity as any} timeStep={1 / 30} paused={!isVisible}>
-              <Band isMobile={isMobile} cardGLB={cardGLBPath} lanyardImg={lanyardPath} isVisible={isVisible} />
+            <Physics gravity={gravity as any} timeStep={1 / 30}>
+              <Band isMobile={isMobile} cardGLB={REMOTE_CARD} lanyardImg={REMOTE_LANYARD} />
             </Physics>
             <Environment blur={1}>
               <Lightformer intensity={2} color="white" position={[0, -1, 5]} rotation={[0, 0, Math.PI / 3]} scale={[100, 0.1, 1]} />
               <Lightformer intensity={5} color="white" position={[-10, 0, 14]} rotation={[0, Math.PI / 2, Math.PI / 3]} scale={[100, 10, 1]} />
             </Environment>
           </Canvas>
-        </div>
+        )}
       </Suspense>
     </div>
   );
 }
 
-function Band({ maxSpeed = 30, minSpeed = 0, isMobile = false, cardGLB, lanyardImg, isVisible }: any) {
+function Band({ maxSpeed = 30, minSpeed = 0, isMobile = false, cardGLB, lanyardImg }: any) {
   const band = useRef<any>(null),
     fixed = useRef<any>(null),
     j1 = useRef<any>(null),
     j2 = useRef<any>(null),
     j3 = useRef<any>(null),
     card = useRef<any>(null);
+  
   const vec = new THREE.Vector3(),
     ang = new THREE.Vector3(),
     rot = new THREE.Vector3(),
     dir = new THREE.Vector3();
+    
   const segmentProps: any = { type: 'dynamic', canSleep: true, colliders: false, angularDamping: 4, linearDamping: 4 };
 
-  // Use cached assets
+  // Load assets
   const { nodes, materials } = useGLTF(cardGLB) as any;
   const texture = useTexture(lanyardImg) as THREE.Texture;
   
@@ -107,7 +102,7 @@ function Band({ maxSpeed = 30, minSpeed = 0, isMobile = false, cardGLB, lanyardI
   const [dragged, drag] = useState<any>(false);
   const [hovered, hover] = useState(false);
 
-  // CardContent logic to handle different GLB structures
+  // CardContent logic
   const CardContent = useMemo(() => {
     if (nodes.card && nodes.clip && nodes.clamp) {
       return (
@@ -127,7 +122,6 @@ function Band({ maxSpeed = 30, minSpeed = 0, isMobile = false, cardGLB, lanyardI
         </>
       );
     }
-    // Fallback if useGLTF returns something else
     return <primitive object={nodes.scene || nodes.root || Object.values(nodes)[0]} />;
   }, [nodes, materials, isMobile]);
 
