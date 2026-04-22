@@ -9,11 +9,11 @@ import './Lanyard.css';
 
 extend({ MeshLineGeometry, MeshLineMaterial });
 
-// Asset configuration - Using Remote by default to prevent "Unexpected token <" error if local files are missing
-const cardGLBPath = 'https://raw.githubusercontent.com/DavidHDev/react-bits/master/src/assets/lanyard/card.glb';
-const lanyardPath = 'https://raw.githubusercontent.com/DavidHDev/react-bits/master/src/assets/lanyard/lanyard.png';
+// Asset configuration - Using local assets as requested
+const cardGLBPath = '/assets/card.glb';
+const lanyardPath = '/assets/lanyard.png';
 
-// Preload assets at module level to prevent re-fetching
+// Preload assets at module level to prevent re-fetching on every mount
 useGLTF.preload(cardGLBPath);
 useTexture.preload(lanyardPath);
 
@@ -51,9 +51,7 @@ export default function Lanyard({ position = [0, 0, 15], gravity = [0, -40, 0], 
       <Suspense fallback={<div className="w-full h-full glass animate-pulse rounded-3xl flex items-center justify-center">
         <span className="text-xs font-mono opacity-20">BOOTING_CORE_ENGINE...</span>
       </div>}>
-        {/* We keep the Canvas mounted to avoid heavy re-spawning of GLB/Physics, 
-            but hide it with CSS to save GPU cycles when not visible */}
-        <div className="w-full h-full transition-opacity duration-700" style={{ opacity: isVisible ? 1 : 0, pointerEvents: isVisible ? 'auto' : 'none' }}>
+        {isVisible && (
           <Canvas
             camera={{ position: position as any, fov: fov }}
             dpr={[1, 1.2]}
@@ -68,8 +66,7 @@ export default function Lanyard({ position = [0, 0, 15], gravity = [0, -40, 0], 
             }}
           >
             <ambientLight intensity={Math.PI * 0.5} />
-            {/* Pausing physics when not visible saves CPU/GPU significantly */}
-            <Physics gravity={gravity as any} timeStep={1 / 30} paused={!isVisible}>
+            <Physics gravity={gravity as any} timeStep={1 / 30}>
               <Band isMobile={isMobile} cardGLB={cardGLBPath} lanyardImg={lanyardPath} isVisible={isVisible} />
             </Physics>
             <Environment blur={1}>
@@ -77,7 +74,7 @@ export default function Lanyard({ position = [0, 0, 15], gravity = [0, -40, 0], 
               <Lightformer intensity={5} color="white" position={[-10, 0, 14]} rotation={[0, Math.PI / 2, Math.PI / 3]} scale={[100, 10, 1]} />
             </Environment>
           </Canvas>
-        </div>
+        )}
       </Suspense>
     </div>
   );
