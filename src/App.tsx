@@ -15,6 +15,7 @@ import Contact from "./components/Contact";
 import Navbar from "./components/Navbar";
 import GeminiAssistant from "./components/GeminiAssistant";
 import { ThemeProvider } from "./lib/ThemeContext";
+import GradualBlur from "./components/ui/GradualBlur";
 
 export default function App() {
   return (
@@ -29,6 +30,29 @@ function AppContent() {
     <main className="relative min-h-screen w-full overflow-x-hidden bg-transparent selection:bg-blue-500/30 dark:selection:bg-white/20">
       <Navbar />
       <GeminiAssistant />
+
+      {/* Global Gradual Blur Overlays */}
+      <GradualBlur
+        target="page"
+        position="top"
+        height="8rem"
+        strength={2}
+        divCount={8}
+        curve="bezier"
+        zIndex={50}
+        opacity={1}
+      />
+      <GradualBlur
+        target="page"
+        position="bottom"
+        height="12rem"
+        strength={3}
+        divCount={10}
+        curve="bezier"
+        exponential={true}
+        zIndex={50}
+        opacity={1}
+      />
       
       <div className="relative z-10">
         <Hero />

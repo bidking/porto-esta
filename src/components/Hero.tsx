@@ -1,7 +1,6 @@
 import { motion } from "motion/react";
 import Section from "./Section";
 import LiquidEther from "./ui/LiquidEther";
-import GradualBlur from "./ui/GradualBlur";
 
 export default function Hero() {
   return (
@@ -75,17 +74,6 @@ export default function Hero() {
       >
         <div className="w-px h-12 bg-gradient-to-b from-white/50 to-transparent" />
       </motion.div>
-
-      <GradualBlur
-        target="parent"
-        position="bottom"
-        height="12rem"
-        strength={3}
-        divCount={10}
-        curve="bezier"
-        exponential={true}
-        opacity={1}
-      />
     </Section>
   );
 }

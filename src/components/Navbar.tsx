@@ -17,7 +17,7 @@ export default function Navbar() {
     <motion.nav 
       initial={{ y: -100 }}
       animate={{ y: 0 }}
-      className="fixed top-6 left-1/2 -translate-x-1/2 z-40 w-max"
+      className="fixed top-6 left-1/2 -translate-x-1/2 z-[200] w-max"
     >
       <div className="glass px-6 md:px-8 py-3 md:py-4 rounded-full flex items-center gap-4 md:gap-8 transition-all duration-300">
         <a href="#hero" className="text-xl font-bold tracking-tighter interactive dark:text-white text-zinc-900 transition-colors duration-300">STA</a>
