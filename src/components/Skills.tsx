@@ -1,7 +1,7 @@
 import Section from "./Section";
 import { motion } from "motion/react";
 import LogoLoop, { LogoItem } from "./ui/LogoLoop";
-import { useTheme } from "../lib/ThemeContext";
+import { useTheme } from "../ThemeContext";
 import { 
   SiNginx, 
   SiDocker, 

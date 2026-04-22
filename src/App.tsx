@@ -14,11 +14,11 @@ import CommentSection from "./components/CommentSection";
 import Contact from "./components/Contact";
 import Navbar from "./components/Navbar";
 import GeminiAssistant from "./components/GeminiAssistant";
-import { ThemeProvider } from "./lib/ThemeContext";
+import { ThemeProvider } from "./ThemeContext";
 import GradualBlur from "./components/ui/GradualBlur";
 
 import FlowingMenu from "./components/FlowingMenu";
-import { useTheme } from "./lib/ThemeContext";
+import { useTheme } from "./ThemeContext";
 
 export default function App() {
   return (

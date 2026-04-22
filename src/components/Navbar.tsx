@@ -1,6 +1,6 @@
 import { motion } from "motion/react";
 import { Sun, Moon } from "lucide-react";
-import { useTheme } from "../lib/ThemeContext";
+import { useTheme } from "../ThemeContext";
 import StaggeredMenu from "./StaggeredMenu";
 
 export default function Navbar() {
