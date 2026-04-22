@@ -3,7 +3,7 @@ import { motion, useInView } from 'motion/react';
 
 const AnimatedItem = ({ children, delay = 0, index, onMouseEnter, onClick }: { children: ReactNode, delay?: number, index: number, onMouseEnter?: () => void, onClick?: () => void }) => {
   const ref = useRef(null);
-  const inView = useInView(ref, { amount: 0.1, triggerOnce: false });
+  const inView = useInView(ref, { amount: 0.1 });
   return (
     <motion.div
       ref={ref}
