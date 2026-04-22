@@ -29,8 +29,11 @@ service cloud.firestore {
     }
 
     function isValidComment(data) {
-      return data.keys().hasAll(['text', 'user', 'uid', 'createdAt']) &&
-             data.keys().hasOnly(['text', 'user', 'photo', 'uid', 'createdAt']) &&
+      // Check required fields and total count (photo is optional)
+      let hasRequired = data.keys().hasAll(['text', 'user', 'uid', 'createdAt']);
+      let hasCorrectCount = data.keys().size() >= 4 && data.keys().size() <= 5;
+      
+      return hasRequired && hasCorrectCount &&
              data.text is string && data.text.size() >= 1 && data.text.size() <= 1000 &&
              data.user is string && data.user.size() >= 1 && data.user.size() <= 100 &&
              (data.photo == null || data.photo == "" || (data.photo is string && data.photo.size() <= 500)) &&

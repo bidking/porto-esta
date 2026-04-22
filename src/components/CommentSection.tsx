@@ -55,13 +55,20 @@ export default function CommentSection() {
     if (!newComment.trim()) return;
 
     try {
-      await addDoc(collection(db, "comments"), {
+      const commentData: any = {
         text: newComment,
         user: user?.displayName || "Anonymous",
-        photo: user?.photoURL || "",
         uid: user?.uid || "anonymous",
         createdAt: serverTimestamp()
-      });
+      };
+
+      if (user?.photoURL) {
+        commentData.photo = user.photoURL;
+      } else {
+        commentData.photo = "";
+      }
+
+      await addDoc(collection(db, "comments"), commentData);
       setNewComment("");
     } catch (error) {
       console.error("Error adding comment", error);
