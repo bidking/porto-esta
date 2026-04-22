@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import Section from "./Section";
+import AnimatedList from "./AnimatedList";
 import { Send, User, Reply, X, Image as ImageIcon, Search, Heart } from "lucide-react";
 import { db, auth } from "@/src/lib/firebase";
 import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, increment, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
@@ -266,41 +267,34 @@ export default function CommentSection() {
         </div>
 
         {/* Right Column: User Comments */}
-        <div className="lg:col-span-7 h-[600px] overflow-y-auto pr-6 custom-scrollbar rounded-3xl">
-          <div className="space-y-6 pb-6">
-            <AnimatePresence initial={false}>
-            {parentComments.length === 0 ? (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="glass p-12 rounded-[40px] text-center">
-                <p className="dark:text-white/30 text-zinc-400 italic">No feedback yet. Be the first to start the loop!</p>
-              </motion.div>
-            ) : (
-              parentComments.map((comment) => (
-                <div key={comment.id} className="space-y-4">
-                  <CommentCard 
-                    comment={comment} 
-                    isLiked={comment.likedBy?.includes(currentLikeUid)}
-                    onLike={() => handleLike(comment.id, comment.likedBy)}
-                    onReply={() => {
-                      setReplyTo(comment);
-                      window.scrollTo({ top: document.getElementById('comments')?.offsetTop! - 100, behavior: 'smooth' });
-                    }} 
-                  />
-                  <div className="ml-8 md:ml-12 space-y-4 border-l-2 dark:border-white/5 border-zinc-100 pl-4 md:pl-6">
-                    {getReplies(comment.id).map(reply => (
-                      <CommentCard 
-                        key={reply.id} 
-                        comment={reply} 
-                        isReply 
-                        isLiked={reply.likedBy?.includes(currentLikeUid)}
-                        onLike={() => handleLike(reply.id, reply.likedBy)}
-                      />
-                    ))}
-                  </div>
+        <div className="lg:col-span-7">
+          <AnimatedList 
+            items={parentComments}
+            renderItem={(comment) => (
+              <div key={comment.id} className="space-y-4">
+                <CommentCard 
+                  comment={comment} 
+                  isLiked={comment.likedBy?.includes(currentLikeUid)}
+                  onLike={() => handleLike(comment.id, comment.likedBy)}
+                  onReply={() => {
+                    setReplyTo(comment);
+                    window.scrollTo({ top: document.getElementById('comments')?.offsetTop! - 100, behavior: 'smooth' });
+                  }} 
+                />
+                <div className="ml-8 md:ml-12 space-y-4 border-l-2 dark:border-white/5 border-zinc-100 pl-4 md:pl-6">
+                  {getReplies(comment.id).map(reply => (
+                    <CommentCard 
+                      key={reply.id} 
+                      comment={reply} 
+                      isReply 
+                      isLiked={reply.likedBy?.includes(currentLikeUid)}
+                      onLike={() => handleLike(reply.id, reply.likedBy)}
+                    />
+                  ))}
                 </div>
-              ))
+              </div>
             )}
-          </AnimatePresence>
-          </div>
+          />
         </div>
       </div>
     </Section>
