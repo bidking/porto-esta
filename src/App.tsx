@@ -31,23 +31,13 @@ function AppContent() {
       <Navbar />
       <GeminiAssistant />
 
-      {/* Global Gradual Blur Overlays */}
-      <GradualBlur
-        target="page"
-        position="top"
-        height="8rem"
-        strength={2}
-        divCount={8}
-        curve="bezier"
-        zIndex={50}
-        opacity={1}
-      />
+      {/* Global Gradual Blur Overlay */}
       <GradualBlur
         target="page"
         position="bottom"
-        height="12rem"
+        height="7rem"
         strength={3}
-        divCount={10}
+        divCount={5}
         curve="bezier"
         exponential={true}
         zIndex={50}
