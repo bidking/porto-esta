@@ -17,7 +17,7 @@ service cloud.firestore {
 
     function isUser(userId) {
       return (isSignedIn() && request.auth.uid == userId) || 
-             (!isSignedIn() && userId.startsWith("anon_"));
+             (!isSignedIn() && userId is string && userId.startsWith("anon_"));
     }
     
     function isOwner(userId) {
@@ -36,19 +36,16 @@ service cloud.firestore {
     function isValidComment(data) {
       let requiredFields = ['text', 'user', 'uid', 'createdAt'];
       let hasRequired = data.keys().hasAll(requiredFields);
-      let validKeys = data.keys().size() >= 4 && data.keys().size() <= 8; // text, user, uid, createdAt, photo, gifUrl, replyToId, likesCount
       
-      return hasRequired && validKeys &&
-             data.text is string && data.text.size() >= 1 && data.text.size() <= 1000 &&
-             data.user is string && data.user.size() >= 1 && data.user.size() <= 100 &&
-             (data.photo == null || data.photo == "" || (data.photo is string && data.photo.size() <= 500)) &&
-             (data.gifUrl == null || data.gifUrl == "" || (data.gifUrl is string && data.gifUrl.size() <= 500)) &&
-             (data.replyToId == null || (data.replyToId is string && data.replyToId.size() <= 100)) &&
-             (data.likesCount == null || data.likesCount is number) &&
+      return hasRequired &&
+             data.text is string && data.text.size() >= 1 && data.text.size() <= 2000 &&
+             data.user is string && data.user.size() >= 1 && data.user.size() <= 200 &&
+             (data.uid is string) &&
              (
                (request.auth == null && (data.uid == "anonymous" || data.uid.startsWith("anon_"))) ||
                (request.auth != null && data.uid == request.auth.uid)
              ) &&
+             (data.likesCount == null || data.likesCount is number) &&
              data.createdAt == request.time;
     }
 
@@ -59,14 +56,11 @@ service cloud.firestore {
     match /comments/{commentId} {
       allow read: if true;
       
-      allow create: if isValidComment(incoming()) && 
-                    (incoming().likesCount == null || incoming().likesCount == 0);
+      allow create: if isValidComment(incoming());
       
       allow update: if (
         // Action: Like/Unlike (Atomic Increment/Decrement)
-        // Note: For anonymous likes, we allow the increment if it's only the likesCount changing by 1.
-        // In a production app, we would use a Cloud Function for this for absolute security,
-        // but for this portfolio prototype, we'll allow client-side increments.
+        // Allow anyone to update likesCount if nothing else changes
         incoming().diff(existing()).affectedKeys().hasOnly(['likesCount']) &&
         (incoming().likesCount == existing().likesCount + 1 || incoming().likesCount == existing().likesCount - 1)
       );

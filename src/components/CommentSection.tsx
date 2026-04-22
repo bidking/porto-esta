@@ -34,6 +34,12 @@ export default function CommentSection() {
   useEffect(() => {
     if (!db) return;
 
+    // Initialize deviceId for anonymous tracking
+    if (!localStorage.getItem('deviceId')) {
+      const id = Math.random().toString(36).substring(2) + Date.now().toString(36);
+      localStorage.setItem('deviceId', id);
+    }
+
     const q = query(collection(db, "comments"), orderBy("createdAt", "desc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const docs = snapshot.docs.map(doc => ({
@@ -96,17 +102,17 @@ export default function CommentSection() {
     setIsGifLoading(true);
     setGifError(null);
     try {
-      // Trying a more reliable public key
-      const resp = await fetch(`https://api.giphy.com/v1/gifs/search?api_key=LIV87reSOf9ouBy9fA6Yn28YkCEF0yZp&q=${encodeURIComponent(gifSearch)}&limit=12&rating=g`);
-      if (resp.status === 403 || resp.status === 401) {
-        throw new Error("GIPHY API Key issue or rate limited. Please try again later.");
+      // Reverting to the most common public beta key
+      const resp = await fetch(`https://api.giphy.com/v1/gifs/search?api_key=dc6zaTOxFJmzC&q=${encodeURIComponent(gifSearch)}&limit=12`);
+      if (!resp.ok) {
+        throw new Error(`GIPHY API error: ${resp.status}`);
       }
       const data = await resp.json();
       setGifResults(data.data || []);
     } catch (error: any) {
       console.error("GIF search failed", error);
       setGifResults([]);
-      setGifError(error.message || "Failed to search GIFs");
+      setGifError("Unable to load GIFs. Please try again later.");
     } finally {
       setIsGifLoading(false);
     }
