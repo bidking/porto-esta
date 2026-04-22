@@ -77,8 +77,8 @@ export default function CommentSection() {
     setIsGifLoading(true);
     setGifError(null);
     try {
-      // Reverting to the most common public beta key
-      const resp = await fetch(`https://api.giphy.com/v1/gifs/search?api_key=dc6zaTOxFJmzC&q=${encodeURIComponent(gifSearch)}&limit=12`);
+      const apiKey = import.meta.env.VITE_GIPHY_API_KEY || "DQVMiMOFPna2ZuVSlBiGMqRcRoFthDBW";
+      const resp = await fetch(`https://api.giphy.com/v1/gifs/search?api_key=${apiKey}&q=${encodeURIComponent(gifSearch)}&limit=12&rating=g`);
       if (!resp.ok) {
         throw new Error(`GIPHY API error: ${resp.status}`);
       }
