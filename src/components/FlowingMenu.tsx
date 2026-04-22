@@ -1,35 +1,27 @@
 import { useRef, useEffect, useState } from 'react';
 import { gsap } from 'gsap';
-import { useTheme } from '../lib/ThemeContext';
 
 import './FlowingMenu.css';
 
-interface MenuItemProps {
-  link: string;
-  text: string;
-  image: string;
-  speed: number;
-  textColor: string;
-  marqueeBgColor: string;
-  marqueeTextColor: string;
-  borderColor: string;
+interface FlowingMenuProps {
+  items?: { link: string; text: string; image: string }[];
+  speed?: number;
+  textColor?: string;
+  bgColor?: string;
+  marqueeBgColor?: string;
+  marqueeTextColor?: string;
+  borderColor?: string;
 }
 
 function FlowingMenu({
   items = [],
   speed = 15,
-}: {
-  items?: { link: string; text: string; image: string }[];
-  speed?: number;
-}) {
-  const { theme } = useTheme();
-
-  const textColor = theme === 'dark' ? '#fff' : '#18181b';
-  const marqueeBgColor = theme === 'dark' ? '#fff' : '#18181b';
-  const marqueeTextColor = theme === 'dark' ? '#000' : '#fff';
-  const borderColor = theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
-  const bgColor = 'transparent';
-
+  textColor = '#fff',
+  bgColor = '#120F17',
+  marqueeBgColor = '#fff',
+  marqueeTextColor = '#120F17',
+  borderColor = '#fff'
+}: FlowingMenuProps) {
   return (
     <div className="menu-wrap" style={{ backgroundColor: bgColor }}>
       <nav className="menu">
@@ -49,7 +41,7 @@ function FlowingMenu({
   );
 }
 
-function MenuItem({ link, text, image, speed, textColor, marqueeBgColor, marqueeTextColor, borderColor }: MenuItemProps) {
+function MenuItem({ link, text, image, speed, textColor, marqueeBgColor, marqueeTextColor, borderColor }: any) {
   const itemRef = useRef<HTMLDivElement>(null);
   const marqueeRef = useRef<HTMLDivElement>(null);
   const marqueeInnerRef = useRef<HTMLDivElement>(null);
@@ -153,7 +145,11 @@ function MenuItem({ link, text, image, speed, textColor, marqueeBgColor, marquee
     <div className="menu__item" ref={itemRef} style={{ borderColor }}>
       <a
         className="menu__item-link"
-        href={link}
+        href="#"
+        onClick={(e) => {
+           e.preventDefault();
+           e.stopPropagation();
+        }}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         style={{ color: textColor }}
