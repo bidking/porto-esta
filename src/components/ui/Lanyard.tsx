@@ -126,9 +126,9 @@ function Band({ maxSpeed = 30, minSpeed = 0, isMobile = false, cardGLB, lanyardI
     
     return (
       <>
-        <mesh geometry={nodes.card.geometry}>
+        <mesh geometry={nodes.card?.geometry}>
           <meshPhysicalMaterial
-            map={materials.base.map}
+            map={materials.base?.map}
             map-anisotropy={16}
             clearcoat={isMobile ? 0 : 1}
             clearcoatRoughness={0.15}
@@ -136,8 +136,8 @@ function Band({ maxSpeed = 30, minSpeed = 0, isMobile = false, cardGLB, lanyardI
             metalness={0.8}
           />
         </mesh>
-        <mesh geometry={nodes.clip.geometry} material={materials.metal} material-roughness={0.3} />
-        <mesh geometry={nodes.clamp.geometry} material={materials.metal} />
+        <mesh geometry={nodes.clip?.geometry} material={materials.metal} material-roughness={0.3} />
+        <mesh geometry={nodes.clamp?.geometry} material={materials.metal} />
       </>
     );
   }, [nodes, materials, isMobile]);
@@ -158,15 +158,16 @@ function Band({ maxSpeed = 30, minSpeed = 0, isMobile = false, cardGLB, lanyardI
   }, [hovered, dragged]);
 
   useFrame((state, delta) => {
-    if (dragged) {
+    if (dragged && card.current) {
       vec.set(state.pointer.x, state.pointer.y, 0.5).unproject(state.camera);
       dir.copy(vec).sub(state.camera.position).normalize();
       vec.add(dir.multiplyScalar(state.camera.position.length()));
       [card, j1, j2, j3, fixed].forEach(ref => ref.current?.wakeUp());
-      card.current?.setNextKinematicTranslation({ x: vec.x - dragged.x, y: vec.y - dragged.y, z: vec.z - dragged.z });
+      card.current.setNextKinematicTranslation({ x: vec.x - dragged.x, y: vec.y - dragged.y, z: vec.z - dragged.z });
     }
-    if (fixed.current) {
+    if (fixed.current && j1.current && j2.current && j3.current && card.current && band.current) {
       [j1, j2].forEach(ref => {
+        if (!ref.current) return;
         if (!ref.current.lerped) ref.current.lerped = new THREE.Vector3().copy(ref.current.translation());
         const clampedDistance = Math.max(0.1, Math.min(1, ref.current.lerped.distanceTo(ref.current.translation())));
         ref.current.lerped.lerp(
@@ -175,12 +176,12 @@ function Band({ maxSpeed = 30, minSpeed = 0, isMobile = false, cardGLB, lanyardI
         );
       });
       curve.points[0].copy(j3.current.translation());
-      curve.points[1].copy(j2.current.lerped);
-      curve.points[2].copy(j1.current.lerped);
+      curve.points[1].copy(j2.current.lerped || j2.current.translation());
+      curve.points[2].copy(j1.current.lerped || j1.current.translation());
       curve.points[3].copy(fixed.current.translation());
       band.current.geometry.setPoints(curve.getPoints(isMobile ? 16 : 32));
-      ang.copy(card.current.angvel());
-      rot.copy(card.current.rotation());
+      ang.copy(card.current.angvel() || { x: 0, y: 0, z: 0 });
+      rot.copy(card.current.rotation() || { x: 0, y: 0, z: 0 });
       card.current.setAngvel({ x: ang.x, y: ang.y - rot.y * 0.25, z: ang.z });
     }
   });

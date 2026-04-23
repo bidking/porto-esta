@@ -323,7 +323,7 @@ function CommentCard({ comment, onReply, onLike, isLiked, isReply = false }: { c
           </div>
         </div>
         <p className={`${isReply ? 'text-xs' : 'text-sm'} dark:text-white/70 text-zinc-600 leading-relaxed transition-colors duration-300 break-words`}>
-          {comment.text}
+          {comment.text || ""}
         </p>
         {comment.gifUrl && (
           <div className="mt-3 rounded-xl overflow-hidden border dark:border-white/10 border-zinc-200 max-w-sm">
@@ -333,7 +333,7 @@ function CommentCard({ comment, onReply, onLike, isLiked, isReply = false }: { c
         <div className="mt-3 flex items-center gap-4">
           <button onClick={onLike} className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider transition-all ${isLiked ? 'text-red-500' : 'dark:text-white/30 text-zinc-400 hover:text-red-400'}`}>
             <Heart className={`w-3.5 h-3.5 ${isLiked ? 'fill-current' : ''}`} />
-            <span>{comment.likes || 0}</span>
+            <span>{comment.likes ?? 0}</span>
           </button>
           {!isReply && onReply && (
             <button onClick={onReply} className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider dark:text-white/30 text-zinc-400 hover:dark:text-white hover:text-zinc-900 transition-all">

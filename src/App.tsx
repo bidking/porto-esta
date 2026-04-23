@@ -100,7 +100,7 @@ function AppContent() {
       </div>
       
       <footer className="py-12 text-center dark:text-white/20 text-zinc-400 text-xs font-mono uppercase tracking-[0.2em] transition-colors duration-300">
-        &copy; 2026 Esta Nur Aliansyah &bull; Built with Gemini AI &bull; iOS 26 Aesthetic
+        &copy; 2026 Esta Nur Aliansyah 
       </footer>
     </main>
   );
