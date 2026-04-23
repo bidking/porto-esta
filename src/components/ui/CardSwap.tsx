@@ -1,20 +1,27 @@
-import React, { Children, cloneElement, forwardRef, isValidElement, useEffect, useMemo, useRef } from 'react';
+import React, { Children, cloneElement, forwardRef, isValidElement, useEffect, useMemo, useRef, ReactNode } from 'react';
 import gsap from 'gsap';
 import './CardSwap.css';
 
-export const Card = forwardRef(({ customClass, ...rest }, ref) => (
-  <div ref={ref} {...rest} className={`card ${customClass ?? ''} ${rest.className ?? ''}`.trim()} />
+interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+  customClass?: string;
+  children?: ReactNode;
+}
+
+export const Card = forwardRef<HTMLDivElement, CardProps>(({ customClass, children, ...rest }, ref) => (
+  <div ref={ref} {...rest} className={`card ${customClass ?? ''} ${rest.className ?? ''}`.trim()}>
+    {children}
+  </div>
 ));
 Card.displayName = 'Card';
 
-const makeSlot = (i, distX, distY, total) => ({
+const makeSlot = (i: number, distX: number, distY: number, total: number) => ({
   x: i * distX,
   y: -i * distY,
   z: -i * distX * 2,
   zIndex: total - i
 });
 
-const placeNow = (el, slot, skew) =>
+const placeNow = (el: HTMLElement, slot: { x: number; y: number; z: number; zIndex: number }, skew: number) =>
   gsap.set(el, {
     x: slot.x,
     y: slot.y,
@@ -27,7 +34,20 @@ const placeNow = (el, slot, skew) =>
     force3D: true
   });
 
-const CardSwap = ({
+interface CardSwapProps {
+  width?: number | string;
+  height?: number | string;
+  cardDistance?: number;
+  verticalDistance?: number;
+  delay?: number;
+  pauseOnHover?: boolean;
+  onCardClick?: (index: number) => void;
+  skewAmount?: number;
+  easing?: 'elastic' | 'smooth';
+  children: ReactNode;
+}
+
+const CardSwap: React.FC<CardSwapProps> = ({
   width = 500,
   height = 400,
   cardDistance = 60,
@@ -60,26 +80,26 @@ const CardSwap = ({
 
   const childArr = useMemo(() => Children.toArray(children), [children]);
   const refs = useMemo(
-    () => childArr.map(() => React.createRef()),
+    () => childArr.map(() => React.createRef<HTMLDivElement>()),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [childArr.length]
   );
 
-  const order = useRef(Array.from({ length: childArr.length }, (_, i) => i));
+  const order = useRef<number[]>(Array.from({ length: childArr.length }, (_, i) => i));
 
-  const tlRef = useRef(null);
-  const intervalRef = useRef();
-  const pauseTimeoutRef = useRef(null);
-  const container = useRef(null);
+  const tlRef = useRef<gsap.core.Timeline | null>(null);
+  const intervalRef = useRef<number | undefined>(undefined);
+  const pauseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const container = useRef<HTMLDivElement>(null);
   const isPausedByClick = useRef(false);
 
-  const swapRef = useRef(null);
+  const swapRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     const total = refs.length;
     refs.forEach((r, i) => {
         if (r.current) {
-            placeNow(r.current, makeSlot(i, cardDistance, verticalDistance, total), skewAmount)
+            placeNow(r.current as HTMLElement, makeSlot(i, cardDistance, verticalDistance, total), skewAmount)
         }
     });
 
@@ -93,7 +113,7 @@ const CardSwap = ({
       const tl = gsap.timeline();
       tlRef.current = tl;
 
-      tl.to(elFront, {
+      tl.to(elFront as any, {
         y: '+=500',
         duration: config.durDrop,
         ease: config.ease
@@ -104,9 +124,9 @@ const CardSwap = ({
         const el = refs[idx].current;
         if (!el) return;
         const slot = makeSlot(i, cardDistance, verticalDistance, refs.length);
-        tl.set(el, { zIndex: slot.zIndex }, 'promote');
+        tl.set(el as any, { zIndex: slot.zIndex }, 'promote');
         tl.to(
-          el,
+          el as any,
           {
             x: slot.x,
             y: slot.y,
@@ -146,7 +166,6 @@ const CardSwap = ({
 
     swapRef.current = swap;
 
-    // Delay first swap slightly to avoid jumping on load
     const timeout = setTimeout(() => {
         intervalRef.current = window.setInterval(swap, delay);
     }, 100);
@@ -179,24 +198,21 @@ const CardSwap = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cardDistance, verticalDistance, delay, pauseOnHover, skewAmount, easing]);
 
-  const handleManualClick = (i) => {
+  const handleManualClick = (i: number) => {
     const pos = order.current.indexOf(i);
     if (pos === -1) return;
 
-    // If a background card is clicked, bring it to the front
     if (pos > 0) {
-      // Cycle the order array so the clicked card (at index i) becomes the first element [0]
       const newOrder = [...order.current.slice(pos), ...order.current.slice(0, pos)];
       order.current = newOrder;
       
-      // Animate all cards to their new positions based on the updated order
       const total = refs.length;
       refs.forEach((ref, cardIndex) => {
         if (!ref.current) return;
         const newPosInStack = order.current.indexOf(cardIndex);
         const slot = makeSlot(newPosInStack, cardDistance, verticalDistance, total);
         
-        gsap.to(ref.current, {
+        gsap.to(ref.current as HTMLElement, {
           x: slot.x,
           y: slot.y,
           z: slot.z,
@@ -208,7 +224,6 @@ const CardSwap = ({
       });
     }
 
-    // Pause for 5 seconds if clicked
     isPausedByClick.current = true;
     tlRef.current?.pause();
     clearInterval(intervalRef.current);
@@ -221,23 +236,20 @@ const CardSwap = ({
       tlRef.current?.play();
       
       clearInterval(intervalRef.current);
-      intervalRef.current = window.setInterval(swapRef.current, delay);
+      if (swapRef.current) {
+        intervalRef.current = window.setInterval(swapRef.current, delay);
+      }
       pauseTimeoutRef.current = null;
     }, 5000); 
   };
 
   const rendered = childArr.map((child, i) =>
     isValidElement(child)
-      ? cloneElement(child, {
-          key: i,
+      ? cloneElement(child as React.ReactElement<any>, {
           ref: refs[i],
-          style: { width, height, cursor: 'pointer', ...(child.props.style ?? {}) },
-          onClick: e => {
-            // If it's an interactive element, we still want to pause but maybe not reorder
-            // unless the user actually clicked the card body.
-            // However, bringing to front is usually helpful.
-            
-            child.props.onClick?.(e);
+          style: { width, height, cursor: 'pointer', ...((child.props as any).style ?? {}) },
+          onClick: (e: React.MouseEvent) => {
+            (child.props as any).onClick?.(e);
             handleManualClick(i);
           }
         })
