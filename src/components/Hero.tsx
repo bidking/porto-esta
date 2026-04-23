@@ -75,13 +75,14 @@ export default function Hero() {
           className="relative h-[400px] lg:h-[650px] w-full flex items-center justify-center lg:justify-end"
         >
           {/* Spline Viewer */}
-          <div className="w-full h-full relative group">
+          <div className="w-full h-full relative group overflow-hidden">
              {/* @ts-ignore - custom element spline-viewer */}
              <spline-viewer 
                url="https://prod.spline.design/xjE71Vefvk1b-63x/scene.splinecode"
-               loading-type="eager"
+               loading="eager"
                events-target="global"
-               className="w-full h-full scale-100 lg:scale-110 transition-transform duration-700"
+               className="w-full h-full scale-110 lg:scale-[1.25] transition-transform duration-700 translate-x-[5%] lg:translate-x-[10%]"
+               style={{ clipPath: 'inset(0 0 50px 0)' }}
              />
           </div>
         </motion.div>

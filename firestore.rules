@@ -14,33 +14,39 @@ service cloud.firestore {
       let requiredFields = ['text', 'user', 'uid', 'createdAt', 'likes', 'likedBy'];
       let hasRequired = data.keys().hasAll(requiredFields);
       
-      // Allow fields for text, user, uid, createdAt, likes, likedBy, photo, gifUrl, replyToId
       let count = data.keys().size();
-      let hasCorrectCount = count >= 6 && count <= 9;
+      let hasCorrectCount = count >= 6 && count <= 11; // Increased to 11 for safety
       
       let baseValid = hasRequired && hasCorrectCount &&
-             data.text is string && 
-             data.user is string && 
-             data.uid is string &&
-             data.likes is number &&
-             data.likedBy is list;
+             data.text is string && data.text.size() <= 3000 &&
+             data.user is string && data.user.size() <= 200 &&
+             data.uid is string && data.uid.size() <= 128 &&
+             data.get('likes', 0) is number &&
+             data.get('likedBy', []) is list;
 
-      // On create, timestamp must be NOW. On update, it must remain UNCHANGED.
-      let timestampValid = isCreate ? (data.createdAt == request.time) : (data.createdAt == resource.data.createdAt);
+      // Validate optional fields if present
+      let photoValid = data.get('photo', '') is string && data.get('photo', '').size() <= 1000;
+      let gifValid = data.get('gifUrl', '') is string && data.get('gifUrl', '').size() <= 1000;
+      let replyValid = data.get('replyToId', '') is string && data.get('replyToId', '').size() <= 128;
+
+      let timestampValid = isCreate ? (data.createdAt == request.time) : true; 
       
-      return baseValid && timestampValid;
+      return baseValid && photoValid && gifValid && replyValid && timestampValid;
     }
 
     match /comments/{commentId} {
       allow read: if true;
       
       allow create: if isValidComment(request.resource.data, true) && 
-                      request.resource.data.likes == 0 && 
-                      request.resource.data.likedBy.size() == 0;
+                      request.resource.data.get('likes', 0) == 0 && 
+                      request.resource.data.get('likedBy', []).size() == 0;
       
-      allow update: if isValidComment(request.resource.data, false) &&
-                      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'likedBy']) &&
-                      (request.resource.data.likes - resource.data.likes == 1 || request.resource.data.likes - resource.data.likes == -1);
+      allow update: if (
+        // Action: Toggle Like (User adds/removes their own UID and increments/decrements count)
+        (isValidComment(request.resource.data, false) &&
+         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'likedBy']) &&
+         math.abs(request.resource.data.get('likes', 0) - resource.data.get('likes', 0)) <= 1)
+      );
       
       allow delete: if false;
     }

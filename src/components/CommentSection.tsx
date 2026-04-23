@@ -95,8 +95,11 @@ export default function CommentSection() {
   };
 
   const handleLike = async (commentId: string, commentLikedBy: string[] = []) => {
-    const deviceId = localStorage.getItem('deviceId');
-    const likeUid = user?.uid || `anon_${deviceId}`;
+    const deviceId = localStorage.getItem('deviceId') || '';
+    const likeUid = user?.uid || (deviceId ? `anon_${deviceId}` : '');
+    
+    if (!likeUid) return;
+
     const isCurrentlyLiked = commentLikedBy.includes(likeUid);
     
     const commentRef = doc(db, "comments", commentId);
@@ -315,7 +318,7 @@ function CommentCard({ comment, onReply, onLike, isLiked, isReply = false }: { c
           <div className="flex items-center gap-2">
             <span className={`font-bold ${isReply ? 'text-xs' : 'text-sm'} dark:text-white text-zinc-900 transition-colors duration-300`}>{comment.user}</span>
             <span className="text-[10px] dark:text-white/30 text-zinc-500 font-mono transition-colors duration-300">
-              {comment.createdAt?.toDate().toLocaleDateString()}
+              {comment.createdAt?.toDate ? comment.createdAt.toDate().toLocaleDateString() : 'Just now'}
             </span>
           </div>
         </div>
