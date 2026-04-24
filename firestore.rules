@@ -34,6 +34,12 @@ service cloud.firestore {
       return baseValid && photoValid && gifValid && replyValid && timestampValid;
     }
 
+    function isAdmin() {
+      return isAuthenticated() && 
+             request.auth.token.email == "estaaliansyah@gmail.com" && 
+             request.auth.token.email_verified == true;
+    }
+
     match /comments/{commentId} {
       allow read: if true;
       
@@ -42,13 +48,15 @@ service cloud.firestore {
                       request.resource.data.get('likedBy', []).size() == 0;
       
       allow update: if (
-        // Action: Toggle Like (User adds/removes their own UID and increments/decrements count)
+        // Action: Toggle Like
         (isValidComment(request.resource.data, false) &&
          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'likedBy']) &&
-         math.abs(request.resource.data.get('likes', 0) - resource.data.get('likes', 0)) <= 1)
+         math.abs(request.resource.data.get('likes', 0) - resource.data.get('likes', 0)) <= 1) ||
+        // Action: Admin Moderation
+        isAdmin()
       );
       
-      allow delete: if false;
+      allow delete: if isAdmin();
     }
     
     match /users/{userId} {

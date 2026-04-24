@@ -16,6 +16,7 @@
 @layer base {
   html {
     @apply transition-colors duration-300;
+    scroll-behavior: smooth;
   }
   
   body {

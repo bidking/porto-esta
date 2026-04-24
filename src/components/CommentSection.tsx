@@ -4,7 +4,7 @@ import Section from "./Section";
 import AnimatedList from "./AnimatedList";
 import { Send, User, Reply, X, Image as ImageIcon, Search, Heart } from "lucide-react";
 import { db, auth } from "@/src/lib/firebase";
-import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, increment, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
+import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, increment, updateDoc, arrayUnion, arrayRemove, deleteDoc } from "firebase/firestore";
 import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 
 interface Comment {
@@ -28,9 +28,12 @@ export default function CommentSection() {
   const [isGifPickerOpen, setIsGifPickerOpen] = useState(false);
   const [gifSearch, setGifSearch] = useState("");
   const [gifResults, setGifResults] = useState<any[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [lastSubmitTime, setLastSubmitTime] = useState<number>(0);
   const [isGifLoading, setIsGifLoading] = useState(false);
   const [gifError, setGifError] = useState<string | null>(null);
   const [selectedGif, setSelectedGif] = useState<string | null>(null);
+  const isAdmin = user?.email === "estaaliansyah@gmail.com";
 
   useEffect(() => {
     if (!db) return;
@@ -121,10 +124,38 @@ export default function CommentSection() {
     }
   };
 
+  const handleDelete = async (commentId: string) => {
+    if (!isAdmin) return;
+    if (!confirm("Are you sure you want to delete this comment?")) return;
+
+    try {
+      await deleteDoc(doc(db, "comments", commentId));
+    } catch (error) {
+      console.error("Error deleting comment", error);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newComment.trim() && !selectedGif) return;
+    if (isSubmitting) return;
 
+    // Rate limiting: 10 seconds between posts
+    const now = Date.now();
+    if (now - lastSubmitTime < 10000 && !isAdmin) {
+      alert("Please wait a few seconds before posting again.");
+      return;
+    }
+
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const hasUrl = urlRegex.test(newComment);
+
+    if (hasUrl && !user && !isAdmin) {
+      alert("Anonymous users are not allowed to post links. Please sign in to share links.");
+      return;
+    }
+
+    setIsSubmitting(true);
     try {
       const deviceId = localStorage.getItem('deviceId') || (() => {
         const id = Math.random().toString(36).substring(2) + Date.now().toString(36);
@@ -153,8 +184,11 @@ export default function CommentSection() {
       setNewComment("");
       setReplyTo(null);
       setSelectedGif(null);
+      setLastSubmitTime(Date.now());
     } catch (error) {
       console.error("Error adding comment", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -173,6 +207,11 @@ export default function CommentSection() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Left Column: Input Form (Sticky on desktop) */}
         <div className="lg:col-span-5 lg:sticky lg:top-24 space-y-6">
+          {isAdmin && (
+            <div className="bg-purple-500/10 border border-purple-500/20 p-4 rounded-2xl text-xs text-purple-500 font-medium">
+              Admin Mode Active: You have moderation privileges.
+            </div>
+          )}
           <div className="glass p-6 md:p-8 rounded-[40px] transition-all duration-300 relative">
             {replyTo && (
               <div className="mb-4 flex items-center justify-between p-3 dark:bg-white/5 bg-black/5 rounded-2xl">
@@ -277,6 +316,8 @@ export default function CommentSection() {
                 <CommentCard 
                   comment={comment} 
                   isLiked={comment.likedBy?.includes(currentLikeUid)}
+                  isAdmin={isAdmin}
+                  onDelete={() => handleDelete(comment.id)}
                   onLike={() => handleLike(comment.id, comment.likedBy)}
                   onReply={() => {
                     setReplyTo(comment);
@@ -289,6 +330,8 @@ export default function CommentSection() {
                       key={reply.id} 
                       comment={reply} 
                       isReply 
+                      isAdmin={isAdmin}
+                      onDelete={() => handleDelete(reply.id)}
                       isLiked={reply.likedBy?.includes(currentLikeUid)}
                       onLike={() => handleLike(reply.id, reply.likedBy)}
                     />
@@ -303,9 +346,18 @@ export default function CommentSection() {
   );
 }
 
-function CommentCard({ comment, onReply, onLike, isLiked, isReply = false }: { comment: Comment, onReply?: () => void, onLike: () => void, isLiked: boolean, isReply?: boolean }) {
+function CommentCard({ comment, onReply, onLike, onDelete, isLiked, isAdmin, isReply = false }: { comment: Comment, onReply?: () => void, onLike: () => void, onDelete?: () => void, isLiked: boolean, isAdmin?: boolean, isReply?: boolean }) {
   return (
-    <motion.div initial={{ opacity: 0, y: 20, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className={`glass ${isReply ? 'p-4 rounded-2xl' : 'p-6 rounded-3xl'} flex gap-4 transition-all duration-300 group`}>
+    <motion.div initial={{ opacity: 0, y: 20, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className={`glass ${isReply ? 'p-4 rounded-2xl' : 'p-6 rounded-3xl'} flex gap-4 transition-all duration-300 group relative`}>
+      {isAdmin && (
+        <button 
+          onClick={onDelete}
+          className="absolute top-4 right-4 p-2 rounded-xl bg-red-500/10 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500/20"
+          title="Delete Comment"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      )}
       {comment.photo ? (
         <img src={comment.photo} alt={comment.user} className={`${isReply ? 'w-8 h-8' : 'w-10 h-10'} rounded-full border dark:border-white/10 border-zinc-200 shrink-0`} />
       ) : (

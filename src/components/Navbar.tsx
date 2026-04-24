@@ -15,7 +15,7 @@ export default function Navbar() {
   ];
 
   const socialItems = [
-    { label: 'GitHub', link: 'https://github.com/bidking' },
+    { label: 'GitHub', link: 'https://github.com/estaaliansyah' },
     { label: 'LinkedIn', link: 'https://www.linkedin.com/in/esta-nur-aliansyah-5b6647307' },
     { label: 'Instagram', link: 'https://www.instagram.com/astrolynx._' }
   ];

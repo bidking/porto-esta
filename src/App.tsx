@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { Suspense, lazy } from "react";
+import React, { Suspense, lazy, useMemo } from "react";
 import Hero from "./components/Hero";
 import Navbar from "./components/Navbar";
 import GeminiAssistant from "./components/GeminiAssistant";
@@ -38,6 +38,8 @@ export default function App() {
 
 function AppContent() {
   const { theme } = useTheme();
+  const velocityTexts = useMemo(() => ['DevOps Architect', 'System Administrator'], []);
+
   return (
     <main className="relative min-h-screen w-full overflow-x-hidden bg-transparent selection:bg-purple-500/30 dark:selection:bg-white/20">
       <Navbar />
@@ -81,7 +83,7 @@ function AppContent() {
 
           <div className="py-20 dark:bg-zinc-950/50 bg-zinc-200/50 transition-colors duration-300">
             <ScrollVelocity 
-              texts={['DevOps Architect', 'System Administrator']} 
+              texts={velocityTexts} 
               velocity={100} 
               className="dark:text-white text-zinc-900 font-black italic tracking-tighter transition-colors duration-300"
             />

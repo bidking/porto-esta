@@ -1,6 +1,7 @@
 import { motion } from "motion/react";
 import Section from "./Section";
 import LiquidEther from "./ui/LiquidEther";
+import ShinyText from "./ui/ShinyText";
 
 export default function Hero() {
   return (
@@ -41,9 +42,16 @@ export default function Hero() {
             DevOps & System Administrator
           </motion.span>
           
-          <h1 className="text-5xl sm:text-6xl md:text-7xl xl:text-8xl font-bold tracking-tighter mb-8 bg-clip-text text-transparent bg-gradient-to-b dark:from-white dark:to-white/40 from-zinc-900 to-zinc-600 transition-colors duration-300">
-            Esta Nur Aliansyah
-          </h1>
+          <div className="mb-8">
+            <ShinyText
+              text="Esta Nur Aliansyah"
+              speed={2}
+              color="#b5b5b5"
+              shineColor="#ffffff"
+              spread={120}
+              className="text-7xl sm:text-8xl md:text-8xl xl:text-9xl font-extrabold tracking-tighter !ml-0 !mr-auto text-left leading-[0.85] block"
+            />
+          </div>
           
           <p className="max-w-xl text-lg md:text-xl dark:text-white/60 text-zinc-600 font-light leading-relaxed mb-12 transition-colors duration-300">
             Securing Infrastructure, Architecting Experiences. <br />
@@ -51,20 +59,22 @@ export default function Hero() {
           </p>
           
           <div className="flex flex-wrap gap-4">
-            <motion.button
+            <motion.a
+              href="#projects"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="px-8 py-4 dark:bg-white dark:text-black bg-zinc-900 text-white rounded-full font-medium interactive transition-all duration-300"
+              className="px-8 py-4 dark:bg-white dark:text-black bg-zinc-900 text-white rounded-full font-medium interactive transition-all duration-300 inline-block"
             >
               View Projects
-            </motion.button>
-            <motion.button
+            </motion.a>
+            <motion.a
+              href="#contact"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="px-8 py-4 glass dark:text-white text-zinc-900 rounded-full font-medium interactive transition-all duration-300 shadow-sm"
+              className="px-8 py-4 glass dark:text-white text-zinc-900 rounded-full font-medium interactive transition-all duration-300 shadow-sm inline-block"
             >
               Contact Me
-            </motion.button>
+            </motion.a>
           </div>
         </motion.div>
 
