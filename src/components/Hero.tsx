@@ -1,30 +1,60 @@
+import { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import Section from "./Section";
 import LiquidEther from "./ui/LiquidEther";
 import ShinyText from "./ui/ShinyText";
 
 export default function Hero() {
+  const [isMobile, setIsMobile] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    const isMobileDevice = window.innerWidth < 768;
+    setIsMobile(isMobileDevice);
+    setIsLoaded(true);
+    
+    // Dynamically load Spline only on desktop
+    if (!isMobileDevice) {
+      const script = document.createElement('script');
+      script.type = 'module';
+      script.src = 'https://unpkg.com/@splinetool/viewer@1.12.87/build/spline-viewer.js';
+      document.head.appendChild(script);
+      
+      return () => {
+        document.head.removeChild(script);
+      };
+    }
+  }, []);
+
+  if (!isLoaded) return <div className="min-h-screen bg-black" />;
+
   return (
     <Section id="hero" className="items-center overflow-hidden relative min-h-screen flex">
-      <div className="absolute inset-0 z-0 pointer-events-none opacity-40">
-        <LiquidEther
-          colors={[ '#000000', '#7E22CE', '#A855F7', '#1E1B4B' ]} // Deep blacks, purples, and indigo
-          mouseForce={20}
-          cursorSize={100}
-          isViscous={true}
-          viscous={30}
-          iterationsViscous={12}
-          iterationsPoisson={12}
-          resolution={0.25}
-          isBounce={false}
-          autoDemo={true}
-          autoSpeed={0.5}
-          autoIntensity={2.2}
-          takeoverDuration={0.25}
-          autoResumeDelay={3000}
-          autoRampDuration={0.6}
-        />
-      </div>
+      {!isMobile && (
+        <div className="absolute inset-0 z-0 pointer-events-none opacity-40">
+          <LiquidEther
+            colors={[ '#000000', '#7E22CE', '#A855F7', '#1E1B4B' ]} 
+            mouseForce={20}
+            cursorSize={100}
+            isViscous={true}
+            viscous={30}
+            iterationsViscous={12}
+            iterationsPoisson={12}
+            resolution={0.25}
+            isBounce={false}
+            autoDemo={true}
+            autoSpeed={0.5}
+            autoIntensity={2.2}
+            takeoverDuration={0.25}
+            autoResumeDelay={3000}
+            autoRampDuration={0.6}
+          />
+        </div>
+      )}
+      
+      {isMobile && (
+        <div className="absolute inset-0 z-0 pointer-events-none bg-gradient-to-br from-purple-900/20 via-black to-zinc-900/20 opacity-50" />
+      )}
       
       <div className="container mx-auto px-4 md:px-6 z-10 grid grid-cols-1 lg:grid-cols-2 items-center gap-12 pt-10 lg:pt-0">
         <motion.div
@@ -78,24 +108,26 @@ export default function Hero() {
           </div>
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, x: 50 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 1.2, ease: "easeOut", delay: 0.4 }}
-          className="relative h-[400px] lg:h-[650px] w-full flex items-center justify-center lg:justify-end"
-        >
-          {/* Spline Viewer */}
-          <div className="w-full h-full relative group overflow-hidden">
-             {/* @ts-ignore - custom element spline-viewer */}
-             <spline-viewer 
-               url="https://prod.spline.design/xjE71Vefvk1b-63x/scene.splinecode"
-               loading="eager"
-               events-target="global"
-               className="w-full h-full scale-110 lg:scale-[1.25] transition-transform duration-700 translate-x-[5%] lg:translate-x-[10%]"
-               style={{ clipPath: 'inset(0 0 50px 0)' }}
-             />
-          </div>
-        </motion.div>
+        {!isMobile && (
+          <motion.div
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 1.2, ease: "easeOut", delay: 0.4 }}
+            className="relative h-[400px] lg:h-[650px] w-full flex items-center justify-center lg:justify-end"
+          >
+            {/* Spline Viewer */}
+            <div className="w-full h-full relative group overflow-hidden">
+               {/* @ts-ignore - custom element spline-viewer */}
+               <spline-viewer 
+                 url="https://prod.spline.design/xjE71Vefvk1b-63x/scene.splinecode"
+                 loading="lazy"
+                 hint="none"
+                 className="w-full h-full scale-110 lg:scale-[1.25] transition-transform duration-700 translate-x-[5%] lg:translate-x-[10%]"
+                 style={{ clipPath: 'inset(0 0 50px 0)' }}
+               />
+            </div>
+          </motion.div>
+        )}
       </div>
       
       <motion.div 

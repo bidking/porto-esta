@@ -52,8 +52,11 @@ export default function LiquidEther({
   const intersectionObserverRef = useRef<IntersectionObserver | null>(null);
   const isVisibleRef = useRef(true);
   const resizeRafRef = useRef<number | null>(null);
+  const isMobileRef = useRef(false);
 
   useEffect(() => {
+    isMobileRef.current = window.innerWidth < 768;
+    
     if (!mountRef.current) return;
 
     function makePaletteTexture(stops: string[]) {
@@ -102,7 +105,6 @@ export default function LiquidEther({
       delta = 0;
       container: HTMLElement | null = null;
       renderer: THREE.WebGLRenderer | null = null;
-      clock: THREE.Clock | null = null;
 
       init(container: HTMLElement) {
         this.container = container;
@@ -121,7 +123,6 @@ export default function LiquidEther({
         this.renderer.domElement.style.height = '100%';
         this.renderer.domElement.style.display = 'block';
         
-        // Fix deprecation: Usage of performance.now() instead of THREE.Clock
         this.time = performance.now() / 1000;
       }
       resize() {
@@ -796,17 +797,18 @@ export default function LiquidEther({
       pressure: any;
 
       constructor(options: any) {
+        const isMobile = window.innerWidth < 768;
         this.options = {
-          iterations_poisson: 16,
-          iterations_viscous: 16,
-          mouse_force: 20,
-          resolution: 0.4,
-          cursor_size: 100,
+          iterations_poisson: isMobile ? 8 : 16,
+          iterations_viscous: isMobile ? 8 : 16,
+          mouse_force: isMobile ? 15 : 20,
+          resolution: isMobile ? 0.2 : 0.4,
+          cursor_size: isMobile ? 60 : 100,
           viscous: 30,
           isBounce: false,
           dt: 0.014,
           isViscous: false,
-          BFECC: true,
+          BFECC: !isMobile,
           ...options
         };
         this.fbos = {

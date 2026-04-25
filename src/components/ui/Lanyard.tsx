@@ -54,12 +54,14 @@ export default function Lanyard({ position = [0, 0, 15], gravity = [0, -40, 0], 
         {isVisible && (
           <Canvas
             camera={{ position: position as any, fov: fov }}
-            dpr={[1, 1.2]}
+            dpr={isMobile ? [1, 1] : [1, 1.2]}
             gl={{ 
               alpha: transparent,
               antialias: !isMobile,
               powerPreference: "high-performance",
-              preserveDrawingBuffer: false
+              preserveDrawingBuffer: false,
+              stencil: false,
+              depth: true
             }}
             onCreated={({ gl }) => {
               gl.setClearColor(new THREE.Color(0x000000), transparent ? 0 : 1);
@@ -67,13 +69,16 @@ export default function Lanyard({ position = [0, 0, 15], gravity = [0, -40, 0], 
             onError={(e) => console.error("Canvas Error:", e)}
           >
             <ambientLight intensity={Math.PI * 0.5} />
-            <Physics gravity={gravity as any} timeStep={1 / 30}>
+            <Physics gravity={gravity as any} timeStep={isMobile ? 1 / 20 : 1 / 30}>
               <Band isMobile={isMobile} cardGLB={cardGLBPath} lanyardImg={lanyardPath} isVisible={isVisible} />
             </Physics>
-            <Environment blur={1}>
-              <Lightformer intensity={2} color="white" position={[0, -1, 5]} rotation={[0, 0, Math.PI / 3]} scale={[100, 0.1, 1]} />
-              <Lightformer intensity={5} color="white" position={[-10, 0, 14]} rotation={[0, Math.PI / 2, Math.PI / 3]} scale={[100, 10, 1]} />
-            </Environment>
+            {!isMobile && (
+              <Environment blur={1}>
+                <Lightformer intensity={2} color="white" position={[0, -1, 5]} rotation={[0, 0, Math.PI / 3]} scale={[100, 0.1, 1]} />
+                <Lightformer intensity={5} color="white" position={[-10, 0, 14]} rotation={[0, Math.PI / 2, Math.PI / 3]} scale={[100, 10, 1]} />
+              </Environment>
+            )}
+            {isMobile && <Environment preset="city" />}
           </Canvas>
         )}
       </Suspense>

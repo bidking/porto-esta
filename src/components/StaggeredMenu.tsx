@@ -456,7 +456,13 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
         </button>
       </header>
 
-      <aside id="staggered-menu-panel" ref={panelRef as any} className="staggered-menu-panel custom-scrollbar" aria-hidden={!open}>
+      <aside 
+        id="staggered-menu-panel" 
+        ref={panelRef as any} 
+        className="staggered-menu-panel custom-scrollbar" 
+        aria-hidden={!open}
+        {...({ inert: !open ? true : undefined } as any)}
+      >
         <div className="sm-panel-inner">
           <ul className="sm-panel-list" role="list" data-numbering={displayItemNumbering || undefined}>
             {items && items.length ? (

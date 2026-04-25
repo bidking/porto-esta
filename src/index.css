@@ -41,15 +41,19 @@
 
 @layer utilities {
   .glass {
-    @apply backdrop-blur-2xl transition-all duration-300 border;
-    /* Light Mode */
-    @apply bg-white/70 border-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.04)];
-    /* Dark Mode - Overriding specifically */
-    @apply dark:bg-white/5 dark:border-white/10 dark:shadow-none;
+    @apply transition-all duration-300 border;
+    /* Mobile-first: no blur for performance */
+    @apply bg-white/90 border-white/40 shadow-sm;
+    @apply dark:bg-zinc-900/90 dark:border-white/5;
+    
+    /* Desktop: re-enable blur */
+    @apply md:backdrop-blur-2xl md:bg-white/70 md:shadow-[0_8px_32px_rgba(0,0,0,0.04)];
+    @apply md:dark:bg-white/5 md:dark:border-white/10 md:dark:shadow-none;
   }
   
   .glass-dark {
-    @apply backdrop-blur-3xl bg-black/20 border border-white/5 shadow-2xl;
+    @apply bg-black/40 border border-white/5 shadow-2xl;
+    @apply md:backdrop-blur-3xl md:bg-black/20;
   }
 
   .mesh-gradient {

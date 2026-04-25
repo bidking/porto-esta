@@ -78,11 +78,14 @@ const projects = [
 ];
 
 export default function Projects() {
+  const [isMobile, setIsMobile] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [cardDimensions, setCardDimensions] = useState({ width: 1100, height: 720 });
 
   useEffect(() => {
     const handleResize = () => {
       const w = window.innerWidth;
+      setIsMobile(w < 768);
       if (w < 480) {
         setCardDimensions({ width: 340, height: 480 });
       } else if (w < 768) {
@@ -96,6 +99,8 @@ export default function Projects() {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  const displayedProjects = isExpanded ? projects : projects.slice(0, 4);
 
   return (
     <Section id="projects" className="w-full px-4 md:px-10 lg:px-20 overflow-hidden relative min-h-screen flex flex-col justify-center py-20">
@@ -125,7 +130,7 @@ export default function Projects() {
           delay={5000}
           pauseOnHover={true}
         >
-          {projects.map((project, i) => (
+          {displayedProjects.map((project, i) => (
             <Card 
               key={i} 
               className="overflow-hidden border border-white/10 shadow-2xl rounded-2xl transition-shadow hover:shadow-purple-500/10"
@@ -181,11 +186,12 @@ export default function Projects() {
                 {/* Visual Content Section */}
                 <div className="flex-1 relative overflow-hidden group">
                   <img 
-                    src={project.image} 
+                    src={`${project.image}${isMobile ? '&w=600' : '&w=1200'}&auto=format&fit=crop`} 
                     alt={project.title}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                     referrerPolicy="no-referrer"
                     loading="lazy"
+                    decoding="async"
                   />
                   {/* Content Overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent opacity-70 group-hover:opacity-50 transition-opacity duration-300" />
@@ -225,6 +231,35 @@ export default function Projects() {
               </div>
             </Card>
           ))}
+
+          {!isExpanded && (
+            <Card 
+              className="overflow-hidden border border-white/10 shadow-2xl rounded-2xl cursor-pointer group"
+              onClick={() => setIsExpanded(true)}
+            >
+              <div className="relative h-full flex flex-col bg-[#0c0c0e] items-center justify-center p-12 text-center">
+                <div className="absolute inset-0 bg-gradient-to-tr from-purple-500/10 via-transparent to-violet-500/10" />
+                <motion.div
+                  animate={{ y: [0, -10, 0] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                  className="relative z-10"
+                >
+                  <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-purple-500/10 border border-purple-500/20 flex items-center justify-center mb-6 mx-auto group-hover:scale-110 transition-transform">
+                    <ExternalLink className="w-8 h-8 md:w-10 md:h-10 text-purple-500" />
+                  </div>
+                  <h4 className="text-3xl md:text-5xl font-bold text-white mb-4 tracking-tighter">View {projects.length - 4} More Projects</h4>
+                  <p className="text-white/40 text-sm md:text-lg max-w-sm mx-auto">
+                    Click to unlock the full gallery of engineering creations and digital experiments.
+                  </p>
+                </motion.div>
+                <div className="mt-12">
+                   <span className="px-6 py-3 rounded-full bg-white text-black font-bold text-sm md:text-base group-hover:bg-purple-500 group-hover:text-white transition-colors">
+                      Expand Stack
+                   </span>
+                </div>
+              </div>
+            </Card>
+          )}
         </CardSwap>
       </div>
       
