@@ -3,29 +3,29 @@ import { motion } from "motion/react";
 
 const timeline = [
   {
-    year: "2024 - Present",
+    year: "Juli 2025 - Present",
     role: "DevOps & System Administrator",
     company: "Gamatechno",
     description: "Orchestrating server infrastructure, managing Docker clusters, and optimizing Nginx configurations for high-traffic applications."
   },
   {
-    year: "2023",
+    year: "Juli 2024 - Jan 2025",
     role: "Data Management Intern",
     company: "Telkom Witel Bogor",
-    description: "Assisted in enterprise data management and infrastructure monitoring for regional network operations."
+    description: "Assisted in enterprise data management and infrastructure monitoring for regional network operations during vocational internship."
   },
   {
-    year: "2020 - 2023",
+    year: "2022 - Mei 2025",
     role: "Software Engineering Student",
     company: "SMKN 1 Cibinong",
-    description: "Foundation in software development, focusing on PHP, Java, and database architecture."
+    description: "Foundation in software development, focusing on PHP, Java, and database architecture. Graduated with honors in Software Engineering."
   }
 ];
 
 export default function CareerTimeline() {
   return (
     <Section id="career" className="max-w-4xl mx-auto">
-      <h2 className="text-4xl font-bold mb-16 tracking-tight text-center dark:text-white text-zinc-900 transition-colors duration-300">Vertical Glass Terminal</h2>
+      <h2 className="text-4xl font-bold mb-16 tracking-tight text-center dark:text-white text-zinc-900 transition-colors duration-300 uppercase">journey of life</h2>
       
       <div className="relative border-l dark:border-white/10 border-zinc-200 ml-4 md:ml-0 md:left-1/2 transition-colors duration-300">
         {timeline.map((item, i) => (
